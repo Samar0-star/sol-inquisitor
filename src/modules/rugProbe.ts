@@ -28,7 +28,6 @@ export async function probeRugRisks(
   const mintWeight = options.mintScoreWeight ?? 35;
   const threshold = options.threshold ?? 40;
 
-  const mintPubkey = new PublicKey(targetMintStr);
   const reasons: string[] = [];
 
   let freezeRiskScore = 0;
@@ -43,6 +42,7 @@ export async function probeRugRisks(
 
   // 1. Inspect Mint Account
   try {
+    const mintPubkey = new PublicKey(targetMintStr);
     const mintInfo = options.mintInfoFetcher
       ? await options.mintInfoFetcher(connection, mintPubkey)
       : await getMint(connection, mintPubkey);

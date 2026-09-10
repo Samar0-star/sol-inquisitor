@@ -6,7 +6,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { SolInquisitorPlugin } from '../plugin';
-import { InquisitorConfig } from '../types';
+import { InquisitorConfig, MevGuardInputSchema, RugProbeInputSchema, TradeProposalSchema } from '../types';
 
 /**
  * Sol-Inquisitor MCP Stdio Server
@@ -118,19 +118,16 @@ export async function startMcpServer(
 
     try {
       if (name === 'audit_solana_trade') {
-        const targetMint = String(args?.targetMint);
-        const expectedOutput = Number(args?.expectedOutput);
-        const maxSlippageBps = args?.maxSlippageBps !== undefined ? Number(args.maxSlippageBps) : 100;
-        const walletPublicKey = args?.walletPublicKey ? String(args.walletPublicKey) : undefined;
-        const transactionBase64 = args?.transactionBase64 ? String(args.transactionBase64) : undefined;
-
-        const auditReport = await inquisitor.auditTradeProposal({
-          targetMint,
-          expectedOutput,
-          maxSlippageBps,
-          walletPublicKey,
-          transactionBase64,
+        const validated = TradeProposalSchema.parse({
+          targetMint: args?.targetMint,
+          expectedOutput: args?.expectedOutput !== undefined ? Number(args.expectedOutput) : undefined,
+          maxSlippageBps: args?.maxSlippageBps !== undefined ? Number(args.maxSlippageBps) : undefined,
+          walletPublicKey: args?.walletPublicKey,
+          transactionBase64: args?.transactionBase64,
+          rpcUrl: args?.rpcUrl,
         });
+
+        const auditReport = await inquisitor.auditTradeProposal(validated);
 
         return {
           content: [
@@ -143,8 +140,10 @@ export async function startMcpServer(
       }
 
       if (name === 'probe_token_rug') {
-        const targetMint = String(args?.targetMint);
-        const rugReport = await inquisitor.probeRug(targetMint);
+        const validated = RugProbeInputSchema.parse({
+          targetMint: args?.targetMint,
+        });
+        const rugReport = await inquisitor.probeRug(validated.targetMint);
 
         return {
           content: [
@@ -157,9 +156,12 @@ export async function startMcpServer(
       }
 
       if (name === 'assess_mev_risk') {
-        const maxSlippageBps = Number(args?.maxSlippageBps);
-        const expectedOutput = args?.expectedOutput !== undefined ? Number(args.expectedOutput) : undefined;
-        const mevReport = inquisitor.assessMev(maxSlippageBps, expectedOutput);
+        const validated = MevGuardInputSchema.parse({
+          maxSlippageBps: args?.maxSlippageBps !== undefined ? Number(args.maxSlippageBps) : undefined,
+          expectedOutput: args?.expectedOutput !== undefined ? Number(args.expectedOutput) : undefined,
+          tradeSizeUsd: args?.tradeSizeUsd !== undefined ? Number(args.tradeSizeUsd) : undefined,
+        });
+        const mevReport = inquisitor.assessMev(validated.maxSlippageBps, validated.expectedOutput);
 
         return {
           content: [

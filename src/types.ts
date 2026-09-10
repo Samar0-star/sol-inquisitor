@@ -7,12 +7,11 @@ import type { Connection, Transaction, VersionedTransaction, PublicKey } from '@
 
 export const TradeProposalSchema = z.object({
   targetMint: z
-    .string()
-    .min(32, 'Target mint must be a valid Solana base58 address')
-    .max(44, 'Target mint must be a valid Solana base58 address')
+    .string({ message: 'Target mint must be a valid Solana base58 address' })
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, 'Target mint must be a valid Solana base58 address')
     .describe('Base58 public key of the target token to be purchased or traded for'),
   expectedOutput: z
-    .number()
+    .number({ message: 'Expected output must be greater than zero' })
     .positive('Expected output must be greater than zero')
     .describe('Expected output amount of the target token'),
   maxSlippageBps: z
@@ -48,7 +47,10 @@ export const TradeProposalSchema = z.object({
 export type TradeProposalInput = z.infer<typeof TradeProposalSchema>;
 
 export const RugProbeInputSchema = z.object({
-  targetMint: z.string().min(32).max(44).describe('Base58 public key of the token mint to probe'),
+  targetMint: z
+    .string({ message: 'Target mint must be a valid Solana base58 address' })
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, 'Target mint must be a valid Solana base58 address')
+    .describe('Base58 public key of the token mint to probe'),
 });
 
 export type RugProbeInput = z.infer<typeof RugProbeInputSchema>;

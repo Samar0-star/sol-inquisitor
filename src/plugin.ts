@@ -250,8 +250,9 @@ export class SolInquisitorPlugin {
           },
         ],
         schema: TradeProposalSchema,
-        handler: async (_agent: unknown, input: TradeProposalInput) => {
-          return await this.auditTradeProposal(input);
+        handler: async (_agent: unknown, input: unknown) => {
+          const validated = TradeProposalSchema.parse(input);
+          return await this.auditTradeProposal(validated);
         },
       },
       {
@@ -274,8 +275,9 @@ export class SolInquisitorPlugin {
           },
         ],
         schema: RugProbeInputSchema,
-        handler: async (_agent: unknown, input: { targetMint: string }) => {
-          return await this.probeRug(input.targetMint);
+        handler: async (_agent: unknown, input: unknown) => {
+          const validated = RugProbeInputSchema.parse(input);
+          return await this.probeRug(validated.targetMint);
         },
       },
       {
@@ -297,8 +299,9 @@ export class SolInquisitorPlugin {
           },
         ],
         schema: MevGuardInputSchema,
-        handler: async (_agent: unknown, input: { maxSlippageBps: number; expectedOutput?: number }) => {
-          return this.assessMev(input.maxSlippageBps, input.expectedOutput);
+        handler: async (_agent: unknown, input: unknown) => {
+          const validated = MevGuardInputSchema.parse(input);
+          return this.assessMev(validated.maxSlippageBps, validated.expectedOutput);
         },
       },
     ];

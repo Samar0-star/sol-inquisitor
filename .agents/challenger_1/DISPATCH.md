@@ -25,3 +25,11 @@ Empirically stress-test the Sol-Inquisitor pre-flight decision engine with adver
 
 ## Output
 Write your comprehensive challenge report to `/Users/samaraldico/sol-inquisitor/.agents/challenger_1/handoff.md` and report back via send_message.
+
+## 2026-09-10T13:10:34Z
+Empirically stress-test the pre-flight decision engine:
+- Honeypot evasion attempts (border conditions, 34.99% vs 35% concentration).
+- MEV sandwich thresholds (300 vs 301 bps, 500 vs 501 bps).
+- Simulation balance delta off-by-one and revert vetoes.
+- Run npm test and stress tests.
+Write your challenge report to /Users/samaraldico/sol-inquisitor/.agents/challenger_1/handoff.md with your verdict (APPROVE or REJECT). Report back via send_message.
