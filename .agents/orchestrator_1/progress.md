@@ -1,30 +1,25 @@
 # Progress Log
 
 ## Current Status
-Last visited: 2026-09-10T13:02:00Z
+Last visited: 2026-09-10T13:06:30Z
 - [x] Initialized BRIEFING.md, DISPATCH.md, and progress.md
-- [/] Survey codebase and requirements via 3 Explorers
-  - [x] Explorer 1 (`71035ec0`): Codebase & Environment Audit complete (17/17 tests passing, build clean, identified missing README and missing automated MCP test)
-  - [x] Explorer 2 (`c39e7780`): Requirements Architecture & Feature Inventory complete (handoff delivered)
-  - [ ] Spec Miner 3 (`1e1b1a51`): API Specs & Protocol Interfaces (running)
-- [ ] Synthesize Survey into PROJECT.md
-- [ ] Dispatch E2E Testing Orchestrator
-- [ ] Dispatch Milestone Sub-orchestrators
-- [ ] Verify 100% E2E test pass & adversarial hardening
+- [x] Survey codebase and requirements via 3 Explorers (complete)
+- [x] Synthesized Survey into PROJECT.md
+- [/] Implementation & Dual Track Testing (in progress)
+  - [ ] M1: Automated MCP Server Test Suite (`worker_mcp_test_1`: 12f0258c)
+  - [ ] M2: Superteam Earn Submission Assets & Documentation (`worker_readme_1`: d7eba632)
+  - [ ] E2E Testing Track Suite Tiers 1-4 (`test_writer_e2e_1`: ba8dba6b)
+- [ ] Review & Verification Gate Checks (Reviewers, Challengers, Forensic Auditor)
+- [ ] Milestone 3: Final 100% E2E Pass & Adversarial Hardening (Tier 5)
 - [ ] Victory report to parent
 
-## Key Survey Findings
-- Environment: Node v22.22.3, npm 10.9.8, TypeScript 5.9.3, Jest 30.5.1.
-- Codebase status: `src/` modules implemented (`rugProbe.ts`, `simulation.ts`, `mevGuard.ts`, `plugin.ts`, `mcp/server.ts`, `cli/demo.ts`).
-- Build status: TypeScript compiles cleanly with zero errors under strict mode.
-- Unit tests: 17/17 tests passing with zero external network dependency in 1.16s.
-- CLI demo: `npm run demo` executes cleanly across 3 adversarial scenarios.
-- Identified Gaps:
-  1. `README.md` is missing from root (must contain ASCII architecture diagram, quick-start guide, and 2-minute Loom script per R5).
-  2. Automated test suite for MCP stdio server (`tests/mcp.test.ts`) needed to verify tool listing and tool calls.
+## Active Subagents
+- `worker_mcp_test_1` (12f0258c-94be-40a5-806c-9b76c05b1d93): tests/mcp.test.ts
+- `worker_readme_1` (d7eba632-f084-44f6-9bd6-7abdf1eebd25): README.md
+- `test_writer_e2e_1` (ba8dba6b-98e0-496d-bb01-8dbebb4804fe): tests/e2e.test.ts, TEST_INFRA.md, TEST_READY.md
 
 ## Iteration Status
-Current iteration: 1 / 32
+Current iteration: 2 / 32
 
 ## Hang Log
 No hangs detected.
