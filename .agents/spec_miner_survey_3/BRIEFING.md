@@ -1,4 +1,4 @@
-# BRIEFING — 2026-09-10T12:58:30Z
+# BRIEFING — 2026-09-10T13:06:00Z
 
 ## Mission
 Extract and document authoritative specifications, TypeScript interfaces, zod schemas, and protocol contracts for Solana Agent Kit V2 Plugin, MCP Server, Solana Web3 simulateTransaction, and SPL Token APIs for Sol-Inquisitor.
@@ -29,10 +29,12 @@ Extract and document authoritative specifications, TypeScript interfaces, zod sc
 - **Code layout**: /Users/samaraldico/sol-inquisitor
 
 ## Key Decisions Made
-- Mining authoritative types and signatures directly from installed npm packages (`node_modules/@solana/web3.js`, `node_modules/@solana/spl-token`, `node_modules/@modelcontextprotocol/sdk`, `node_modules/zod`) and local source tree.
+- Extracted and cross-verified all interface contracts from `@modelcontextprotocol/sdk` (1.30.0), `@solana/web3.js` (1.99.0), `@solana/spl-token` (0.4.15), and `zod` (4.6.1).
+- Documented 12 comprehensive features and 15 distinct edge cases across SAK V2, MCP, Solana Web3, and SPL Token domains.
+- Verified test suite pass rate (17/17 tests), TypeScript build, interactive CLI demo, and MCP tool call round-tripping.
 
 ## Artifact Index
-- /Users/samaraldico/sol-inquisitor/.agents/spec_miner_survey_3/DISPATCH.md — Assignment
+- /Users/samaraldico/sol-inquisitor/.agents/spec_miner_survey_3/DISPATCH.md — Assignment & prompt log
 - /Users/samaraldico/sol-inquisitor/.agents/spec_miner_survey_3/BRIEFING.md — Persistent working memory
 - /Users/samaraldico/sol-inquisitor/.agents/spec_miner_survey_3/progress.md — Liveness & status checkpoint
 - /Users/samaraldico/sol-inquisitor/.agents/spec_miner_survey_3/handoff.md — Final specification report

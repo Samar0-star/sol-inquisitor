@@ -6,6 +6,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { SolInquisitorPlugin } from '../plugin';
+import { InquisitorConfig } from '../types';
 
 /**
  * Sol-Inquisitor MCP Stdio Server
@@ -13,8 +14,13 @@ import { SolInquisitorPlugin } from '../plugin';
  * Exposes adversarial pre-flight audit capabilities over the Model Context Protocol (MCP).
  * Compatible with Claude Desktop, Cursor, and Antigravity.
  */
-export async function startMcpServer(): Promise<Server> {
-  const inquisitor = new SolInquisitorPlugin();
+export async function startMcpServer(
+  inquisitorOrConfig?: SolInquisitorPlugin | InquisitorConfig
+): Promise<Server> {
+  const inquisitor =
+    inquisitorOrConfig instanceof SolInquisitorPlugin
+      ? inquisitorOrConfig
+      : new SolInquisitorPlugin(inquisitorOrConfig);
 
   const server = new Server(
     {
