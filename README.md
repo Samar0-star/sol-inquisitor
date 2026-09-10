@@ -429,24 +429,20 @@ In accordance with institutional security standards, if an RPC call fails, times
 
 ---
 
-## 🎬 Word-for-Word 2-Minute Loom Demo Recording Script
+## 💻 Interactive CLI Showcase
 
-*Submission Asset for Superteam Earn: "Sol-Inquisitor Pre-Flight Firewall for Solana Agent Kit"*
+Sol-Inquisitor includes an interactive terminal showcase demonstrating real-time defense against live honeypots, MEV sandwich attacks, and verified DEX swaps.
 
-### Production Guidelines
-- **Target Duration**: Exactly 120 seconds (2 minutes).
-- **Resolution**: 1080p, 60fps.
-- **Audio**: Clean microphone, crisp and confident delivery.
-- **Layout**: Picture-in-picture speaker webcam in bottom right, terminal and code editor full screen.
+Run the demonstration:
 
-| Timestamp & Phase | Visual / Screen Action | Word-for-Word Spoken Narration |
-| :--- | :--- | :--- |
-| **0:00 - 0:20**<br>`Phase 1`<br>**The Hook & Problem Statement** | **Visual**: Full-screen camera or split view with `README.md` ASCII Architecture diagram.<br>**Action**: Highlight the agent-to-mempool transaction pipeline on screen. | *"Hey Superteam! Autonomous AI agents on Solana are trading millions of dollars every day. But right now, they have a fatal blindspot: agents execute trades completely blind to adversarial hazards. They buy honeypot meme coins with active freeze authorities, trade tokens where creators can mint infinite supply, or get liquidated by predatory Jito sandwich bots due to reckless slippage bounds.<br><br>Today, I'm thrilled to introduce **Sol-Inquisitor**: the first adversarial pre-flight falsification and simulation engine built specifically for the Solana Agent Kit with native Model Context Protocol support."* |
-| **0:20 - 0:50**<br>`Phase 2`<br>**Scenario 1: Adversarial Honeypot Interception** | **Visual**: Terminal showing CLI demo execution.<br>**Action**: Run `npm run demo`. Watch Scenario 1 execute with colorful red/yellow logs. | *"Let's watch Sol-Inquisitor defend an agent live. In Scenario 1, an autonomous agent attempts to buy ten thousand tokens of a trending meme coin. Notice what happens: Sol-Inquisitor intercepts the proposal before signing.<br><br>It queries the on-chain mint account via SPL Token. It flags an active freeze authority, adding plus-forty-five risk. It catches an active mint authority, adding plus-thirty-five risk. And it detects eighty-five percent whale concentration, adding plus-thirty. With an aggregated risk score of one hundred and ten, Sol-Inquisitor triggers an immediate pre-flight VETO. The transaction signing is aborted, and the agent treasury is saved from total loss."* |
-| **0:50 - 1:20**<br>`Phase 3`<br>**Scenario 2 & 3: MEV Sandwich & Clean Trade Approval** | **Visual**: Terminal continuing to Scenario 2 and Scenario 3.<br>**Action**: Highlight the MEV audit breakdown and the final green `APPROVED` banner. | *"In Scenario 2, the agent tries to execute a swap with an eight percent slippage tolerance. MEV Guard instantly stratifies this as CRITICAL sandwich bait, models over six percent in extractable value for Jito searchers, and caps the proposal at a safe one hundred basis points.<br><br>Then in Scenario 3, the agent targets a verified decentralized token like BONK. Freeze authority is null, mint authority is revoked, and pre-flight balance deltas meet the minimum acceptable output. Sol-Inquisitor returns APPROVED with an overall risk score of only five out of one hundred, clearing the transaction for on-chain broadcast."* |
-| **1:20 - 1:45**<br>`Phase 4`<br>**SAK V2 Architecture & Native MCP Support** | **Visual**: Switch to VS Code / Cursor showing `src/plugin.ts` and `src/mcp/server.ts`.<br>**Action**: Briefly scroll through `plugin.actions` and the MCP tool schema. | *"Under the hood, Sol-Inquisitor is built in strict TypeScript. It features a complete test suite of one hundred and thirty-eight tests across seven test suites that execute in under two seconds with zero network dependency using mocked ledger states.<br><br>Best of all, Sol-Inquisitor is double-sided: it plugs directly into the Solana Agent Kit V2 as standard actions—`audit_trade_proposal`, `probe_token_rug`, and `assess_mev_risk`—AND it runs as a native Model Context Protocol stdio server. Any LLM client, whether it's Claude Desktop, Cursor, or Antigravity, can inspect and defend Solana trades natively out of the box."* |
-| **1:45 - 2:00**<br>`Phase 5`<br>**Conclusion & Superteam Earn Wrap-Up** | **Visual**: Return to `README.md` and repository header with GitHub / npm badges.<br>**Action**: Show `npm install @solana-agent-kit/plugin-adversary`. | *"With Sol-Inquisitor, autonomous AI agents on Solana no longer trade blind. They trade with an institutional-grade, zero-trust adversarial firewall. You can install it today with `npm install @solana-agent-kit/plugin-adversary`. Thank you, and let's keep building on Solana!"* |
+```bash
+npm run demo
+```
 
+### Demonstration Scenarios:
+1. **Scenario 1: Adversarial Honeypot Interception** — Intercepts a proposed swap into a token with active freeze/mint authorities and 85% whale concentration, triggering an immediate pre-flight veto.
+2. **Scenario 2: MEV Sandwich Stress Veto** — Identifies an 8% slippage tolerance on a DEX trade, calculates extractable value for Jito searchers, and caps the proposal at a safe 100 bps.
+3. **Scenario 3: Verified Decentralized Trade Approval** — Audits a clean token ($BONK) with revoked authorities and healthy balance deltas, granting pre-flight approval in under 50ms.
 ---
 
 ## 🧪 Test Suite & Verification Matrix
