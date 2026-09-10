@@ -1,0 +1,53 @@
+{
+  "name": "@solana-agent-kit/plugin-adversary",
+  "version": "1.0.0",
+  "description": "Sol-Inquisitor: Adversarial Pre-Flight Falsification & Simulation Engine for Solana Agent Kit with native MCP server support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "sol-inquisitor-mcp": "./dist/mcp/server.js",
+    "sol-inquisitor-demo": "./dist/cli/demo.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "demo": "ts-node src/cli/demo.ts",
+    "mcp": "ts-node src/mcp/server.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "solana",
+    "solana-agent-kit",
+    "adversarial",
+    "simulation",
+    "rug-pull",
+    "mev",
+    "mcp",
+    "model-context-protocol",
+    "security",
+    "ai-agents"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.99.0",
+    "dotenv": "^17.4.2",
+    "zod": "^4.6.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.20.2",
+    "jest": "^30.5.1",
+    "ts-jest": "^29.4.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
