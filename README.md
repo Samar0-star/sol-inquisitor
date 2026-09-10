@@ -385,7 +385,7 @@ $$\Delta_{\text{actual}} = \text{Balance}_{\text{post}} - \text{Balance}_{\text{
 
 Effective slippage in basis points is calculated:
 
-$$S_{\text{effective}} = \max\left(0, \operatorname{round}\left(\frac{E_{\text{out}} - \Delta_{\text{actual}}}{E_{\text{out}}} \times 10000\right)\right)$$
+$$S_{\text{effective}} = \max\left(0, \text{round}\left(\frac{E_{\text{out}} - \Delta_{\text{actual}}}{E_{\text{out}}} \times 10000\right)\right)$$
 
 #### Veto Trigger Matrix
 $$\text{Vetoed} = \begin{cases} \text{true} & \text{if } \text{simResult.err} \neq \text{null} \quad (\text{Program Revert / Abort}) \\ \text{true} & \text{if } \Delta_{\text{actual}} < M_{\text{min}} \quad (\text{Slippage Boundary Violation}) \\ \text{false} & \text{otherwise} \end{cases}$$
@@ -406,14 +406,14 @@ Solana searchers actively run Jito bundle sandwich bots that detect loose slippa
 | $> 500$ bps | $> 5.00\%$ | `CRITICAL` | **95** | `true` | $100$ bps ($1.00\%$) |
 
 #### Large Order Penalty
-If trade size exceeds $\$10,000$ USD and slippage exceeds $100$ bps ($1\%$):
+If trade size exceeds 10,000 USD and slippage exceeds 100 bps (1%):
 
 $$R_{\text{mev}} = \min(100, R_{\text{mev}} + 15)$$
 
 #### Extractable Value Model
 Sandwich searchers capture approximately 80% of excess slippage beyond baseline fair DEX spread (30 bps):
 
-$$\text{EV}_{\text{bps}} = \max\left(0, \operatorname{round}\left((S_{\text{bps}} - 30) \times 0.8\right)\right)$$
+$$\text{EV}_{\text{bps}} = \max\left(0, \text{round}\left((S_{\text{bps}} - 30) \times 0.8\right)\right)$$
 
 If $R_{\text{mev}} \ge 50$ (default threshold), a pre-flight veto is triggered and the agent is instructed to cap slippage at $\le 100$ bps.
 
