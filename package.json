@@ -19,6 +19,7 @@
     "test:coverage": "jest --coverage",
     "demo": "ts-node src/cli/demo.ts",
     "mcp": "ts-node src/mcp/server.ts",
+    "ui": "ts-node src/ui/server.ts",
     "audit": "ts-node tests/forensic_runner.ts",
     "start": "node dist/index.js"
   },

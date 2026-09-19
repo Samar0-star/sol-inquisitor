@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/badge/npm-v1.0.0-blue.svg)](https://www.npmjs.com/package/@solana-agent-kit/plugin-adversary)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript: Strict](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Tests: 22/22 Passing](https://img.shields.io/badge/Tests-22%2F22%20Passing-brightgreen.svg)](tests/)
+[![Tests: 138/138 Passing](https://img.shields.io/badge/Tests-138%2F138%20Passing-brightgreen.svg)](tests/)
 [![Solana Agent Kit: V2](https://img.shields.io/badge/Solana%20Agent%20Kit-V2%20Plugin-9945FF?logo=solana)](https://github.com/sendaifun/solana-agent-kit)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Native%20Stdio%20Server-orange)](https://modelcontextprotocol.io/)
 [![Node: >=18](https://img.shields.io/badge/Node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
@@ -152,9 +152,26 @@ Generate full code coverage reports:
 npm run test:coverage
 ```
 
-All 22 unit tests execute in under 2 seconds with zero network dependency using mocked Solana ledger states.
+All 138 automated unit tests across 7 test suites execute in under 3 seconds with zero network dependency using mocked Solana ledger states.
 
-### 5. Run Interactive Showcase Demo
+### 5. Launch Interactive Visual Cybersecurity HUD (`npm run ui`)
+
+Launch the zero-dependency local forensic web dashboard served at `http://localhost:3000`:
+
+```bash
+npm run ui
+```
+
+#### HUD Features:
+- **One-Click Scenarios**: Instant presets for **BONK** (Clean Verified, Approved), **USDC** (Freeze Authority Veto, +45 risk), **Malicious Meme** (Honeypot, +95 risk), and **Predatory MEV Sandwich** (700 bps critical slippage, +95 risk).
+- **Radial Threat Dial**: Live 0–100 real-time risk score meter with dynamic SVG arc and color stratification (Emerald $\le 39$, Amber $40-69$, Crimson $\ge 70$).
+- **Forensic Decision Banner**: Instant `APPROVED` vs `BLOCKED (VETOED)` status banner with primary veto rationale and mitigations.
+- **RugProbe Matrix**: Real-time breakdown of SPL Token Freeze Authority, Mint Authority, and Top 5 Holder supply concentration.
+- **MEV Sandwich Stress Guard**: Slippage tier categorization, Jito sandwich vulnerability indicator, estimated extractable value, and recommended maximum safe slippage boundaries.
+- **Pre-Flight Simulation**: Balance delta diffing and transaction instruction revert verification.
+- **Live `/api/audit` Endpoint**: Zero-dependency HTTP API accepting `POST http://localhost:3000/api/audit` with JSON payload `{ targetMint, expectedOutput, maxSlippageBps }` and returning structured forensic JSON diagnostics.
+
+### 6. Run Interactive Showcase Demo (`npm run demo`)
 
 Run the interactive CLI defense demonstration:
 
@@ -454,8 +471,8 @@ The test suite provides 100% offline verification across all security modules:
 | `tests/rugProbe.test.ts` | `rugProbe Module` | Freeze authority veto (+45), mint authority detection (+35), dual authority honeypot rejection, whale concentration tiers ($\ge 80\% \rightarrow +30$), clean decentralized token approval, fail-secure RPC error fallback. | ✅ 6/6 Passed |
 | `tests/simulation.test.ts` | `simulation Module` | Balance delta calculation, slippage boundary enforcement, on-chain program revert intercept, raw transaction deserialization & simulation, dry-run parameter audit, fail-secure RPC drop. | ✅ 6/6 Passed |
 | `tests/plugin.test.ts` | `SolInquisitorPlugin E2E` | End-to-end honeypot proposal veto, critical MEV sandwich veto (>500 bps), clean decentralized trade approval, Solana Agent Kit V2 action handler execution, slippage tiering. | ✅ 5/5 Passed |
-| `tests/mcp.test.ts` | `MCP Server Integration` | MCP stdio server initialization, tool listing schema for `audit_solana_trade`, `probe_token_rug`, and `assess_mev_risk`, offline tool execution, and error handling. | ✅ 23/23 Passed |
-| `tests/e2e.test.ts` | `Comprehensive Opaque E2E` | 4-tier comprehensive adversarial matrix: feature coverage, boundary conditions, cross-feature compound threats, real-world trading scenarios. | ✅ 60/60 Passed |
+| `tests/mcp.test.ts` | `MCP Server Integration` | MCP stdio server initialization, tool listing schema for `audit_solana_trade`, `probe_token_rug`, and `assess_mev_risk`, offline tool execution, and error handling. | ✅ 24/24 Passed |
+| `tests/e2e.test.ts` | `Comprehensive Opaque E2E` | 4-tier comprehensive adversarial matrix: feature coverage, boundary conditions, cross-feature compound threats, real-world trading scenarios. | ✅ 59/59 Passed |
 | `tests/stress.test.ts` | `Adversarial Stress Harness` | 50 concurrent audits, numeric border conditions, off-by-one delta boundaries, custom error handling. | ✅ 20/20 Passed |
 | `tests/challenger2_protocol.test.ts` | `Protocol Fuzzing & Resilience` | Rapid burst fuzzing, fail-secure RPC outage simulation (ETIMEDOUT, ECONNREFUSED, HTTP 500, HTTP 429), strict SAK V2 & MCP Zod input validation. | ✅ 18/18 Passed |
 | **Total** | **7 Test Suites** | **Complete System Verification** | **✅ 138/138 Passed** |
@@ -467,31 +484,52 @@ npm test
 
 ---
 
+## 🎥 2-Minute Loom Demo Recording Script
+
+*A word-for-word timed presenter script for submitting to Superteam Earn and showcasing Sol-Inquisitor.*
+
+| Timestamp | Visual / Screen Action | Spoken Presenter Script |
+| :--- | :--- | :--- |
+| **0:00 – 0:25**<br>*(Problem Statement)* | Show `README.md` architecture diagram and terminal window. | *"Hey everyone! When autonomous AI agents—whether powered by Claude, ElizaOS, or Solana Agent Kit—execute trades on Solana, they face an adversarial minefield: honeypots with unrevoked freeze authorities, infinite mint inflation, whale cabal dumps, and predatory Jito MEV sandwich attacks. If an agent naively signs whatever quote the aggregator gives it, the agent's treasury gets drained. Meet **Sol-Inquisitor**: a zero-trust pre-flight transaction firewall and simulation engine that falsifies proposed trades and vetoes unsafe transactions BEFORE signing."* |
+| **0:25 – 0:55**<br>*(Live Visual HUD)* | Switch to browser at `http://localhost:3000` (`npm run ui`). Click **BONK**, then **USDC**, then **Honeypot Meme**, then **MEV Sandwich**. | *"Here is our interactive cybersecurity dashboard running locally on port 3000 via `npm run ui`. Watch what happens when we audit different scenarios. First, BONK: authorities are permanently revoked, slippage is low, threat score is 5, and the decision gate gives a clean green APPROVED. Next, USDC: Circle retains an active freeze authority. Sol-Inquisitor catches it immediately (+45 risk), displaying a red BLOCKED veto. Now, our Honeypot Meme preset: deployer mint authority is still active (+35) and top whales hold 88.5% of supply (+30)—threat score jumps to 95 and the transaction is aborted. Finally, MEV Sandwich: 700 basis points slippage triggers our Jito stress guard, capping the proposal at 100 bps."* |
+| **0:55 – 1:25**<br>*(Architecture & MCP)* | Show `src/plugin.ts` and `src/mcp/server.ts` in editor, then run `npm run demo` in terminal. | *"Under the hood, Sol-Inquisitor decomposes every trade across three falsification engines: RugProbe for cryptographic authority analysis, MevGuard for nonlinear slippage stress-testing, and SimulationEngine for pre-flight balance delta diffing against ledger state. It is packaged as an official Solana Agent Kit V2 plugin and a native Model Context Protocol (MCP) server. Any autonomous agent running in Cursor, Claude Desktop, or Mermail Agent Wallet can invoke `audit_solana_trade` without exposing private keys."* |
+| **1:25 – 1:45**<br>*(Test Suite & Integrity)* | Run `npm test` in terminal. Show 7 suites and 138/138 tests passing in ~2 seconds. | *"Let's look at the engineering rigor. Running `npm test`: all 138 automated unit tests across 7 comprehensive test suites execute in just 2.3 seconds with zero external network dependency. Every single boundary condition, off-by-one delta calculation, simulation revert, and RPC outage fallback is rigorously validated and 100% mocked."* |
+| **1:45 – 2:00**<br>*(Call to Action)* | Return to repository root, show `SKILL.md` and MIT License. | *"Sol-Inquisitor turns autonomous AI agents from vulnerable targets into hardened, secure traders. It's 100% open-source under the MIT license, complete with full Mermail wallet compliance and MCP schemas. Try it today with `npm run ui` or install the Solana Agent Kit plugin. Thank you!"* |
+
+---
+
 ## 📁 Repository File Layout
 
 ```
 sol-inquisitor/
-├── package.json              # Package manifest, dependencies, binaries, scripts
-├── tsconfig.json             # TypeScript strict mode compiler options
-├── jest.config.js            # Jest test configuration with ts-jest
-├── README.md                 # Complete documentation, architecture, math specs & Loom script
+├── package.json                   # Package manifest, dependencies, binaries, scripts
+├── tsconfig.json                  # TypeScript strict mode compiler options
+├── jest.config.js                 # Jest test configuration with ts-jest
+├── README.md                      # Complete documentation, architecture, math specs & Loom script
+├── SKILL.md                       # Mermail & Model Context Protocol (MCP) agent skill definition
 ├── src/
-│   ├── index.ts              # Root library export & factory helpers
-│   ├── types.ts              # Strict TypeScript interfaces & Zod validation schemas
-│   ├── plugin.ts             # SolInquisitorPlugin class for Solana Agent Kit V2
+│   ├── index.ts                   # Root library export & factory helpers
+│   ├── types.ts                   # Strict TypeScript interfaces & Zod validation schemas
+│   ├── plugin.ts                  # SolInquisitorPlugin class for Solana Agent Kit V2
 │   ├── modules/
-│   │   ├── rugProbe.ts       # Module A: Token freeze authority, mint authority & whale concentration
-│   │   ├── mevGuard.ts       # Module B: Slippage curve stress-testing & MEV sandwich guard
-│   │   └── simulation.ts     # Module C: Pre-flight RPC simulateTransaction & balance delta diffing
+│   │   ├── rugProbe.ts            # Module A: Token freeze authority, mint authority & whale concentration
+│   │   ├── mevGuard.ts            # Module B: Slippage curve stress-testing & MEV sandwich guard
+│   │   └── simulation.ts          # Module C: Pre-flight RPC simulateTransaction & balance delta diffing
 │   ├── mcp/
-│   │   └── server.ts         # Native Model Context Protocol (MCP) stdio server
+│   │   └── server.ts              # Native Model Context Protocol (MCP) stdio server
+│   ├── ui/
+│   │   └── server.ts              # Interactive Visual Cybersecurity HUD & /api/audit REST server
 │   └── cli/
-│       └── demo.ts           # Interactive CLI defense demonstration
+│       └── demo.ts                # Interactive CLI defense demonstration
 └── tests/
-    ├── rugProbe.test.ts      # Unit tests for honeypot & authority detection
-    ├── simulation.test.ts    # Unit tests for RPC simulation & balance deltas
-    ├── plugin.test.ts        # Integration tests for SAK V2 plugin & MEV guard
-    └── mcp.test.ts           # Unit tests for MCP server listing & execution
+    ├── rugProbe.test.ts           # Unit tests for honeypot & authority detection (6 tests)
+    ├── simulation.test.ts         # Unit tests for RPC simulation & balance deltas (6 tests)
+    ├── plugin.test.ts             # Integration tests for SAK V2 plugin & MEV guard (5 tests)
+    ├── mcp.test.ts                # Unit tests for MCP server listing & execution (24 tests)
+    ├── e2e.test.ts                # Comprehensive 4-tier opaque E2E matrix (59 tests)
+    ├── stress.test.ts             # Concurrency & numeric boundary stress tests (20 tests)
+    ├── challenger2_protocol.test.ts # Protocol fuzzing & RPC outage tests (18 tests)
+    └── forensic_runner.ts         # Standalone live mainnet fuzzing & audit runner (npm run audit)
 ```
 
 ---
