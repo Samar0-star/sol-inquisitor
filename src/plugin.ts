@@ -74,8 +74,60 @@ export class SolInquisitorPlugin {
   public async auditTradeProposal(
     rawProposal: TradeProposalInput
   ): Promise<AdversarialAuditReport> {
-    // 1. Validate Proposal Input Schema
-    const proposal = TradeProposalSchema.parse(rawProposal);
+    // 1. Validate Proposal Input Schema fail-securely
+    const parsed = TradeProposalSchema.safeParse(rawProposal);
+    if (!parsed.success) {
+      const errorMessages = parsed.error.issues.map((i) => i.message).join('; ');
+      const targetMint =
+        rawProposal && typeof (rawProposal as any).targetMint === 'string'
+          ? (rawProposal as any).targetMint
+          : 'INVALID_TARGET_MINT';
+      const maxSlippageBps =
+        rawProposal && typeof (rawProposal as any).maxSlippageBps === 'number'
+          ? (rawProposal as any).maxSlippageBps
+          : 100;
+
+      return {
+        decision: 'BLOCKED',
+        verdict: 'VETO: Transaction proposal rejected due to invalid cryptographic or numeric parameters.',
+        overallRiskScore: 100,
+        timestamp: Date.now(),
+        targetMint,
+        breakdown: {
+          rugProbe: {
+            mint: targetMint,
+            hasFreezeAuthority: true,
+            freezeAuthority: 'INVALID_INPUT',
+            freezeRiskScore: 50,
+            hasMintAuthority: true,
+            mintAuthority: 'INVALID_INPUT',
+            mintRiskScore: 50,
+            topHoldersSharePercentage: 100,
+            concentrationRiskScore: 0,
+            topHolders: [],
+            totalRiskScore: 100,
+            isUnsafe: true,
+            reasons: [`Proposal validation failed: ${errorMessages}`],
+          },
+          simulation: null,
+          mevGuard: {
+            slippageBps: maxSlippageBps,
+            mevRiskScore: 100,
+            riskLevel: 'CRITICAL',
+            sandwichVulnerability: false,
+            estimatedExtractableValueBps: 0,
+            recommendedMaxSlippageBps: 100,
+            reasons: [`Proposal validation failed: ${errorMessages}`],
+          },
+        },
+        vetoReasons: [`Validation failed: ${errorMessages}`],
+        recommendations: [
+          'Refuse trading: Malformed proposal parameters or invalid cryptographic address.',
+        ],
+      };
+    }
+
+    const proposal = parsed.data;
     const { targetMint, expectedOutput, maxSlippageBps, walletPublicKey, transactionBase64 } =
       proposal;
 

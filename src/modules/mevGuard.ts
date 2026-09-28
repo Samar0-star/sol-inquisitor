@@ -46,8 +46,14 @@ export function assessMevRisk(input: MevGuardInput): MevRiskReport {
     riskLevel = 'LOW';
     sandwichVulnerability = false;
     reasons.push(`Standard slippage tolerance (${(maxSlippageBps / 100).toFixed(2)}%). Normal MEV exposure.`);
+  } else if (maxSlippageBps === 0) {
+    // 0 bps = Zero slippage allowed; immune to sandwich attacks
+    mevRiskScore = 0;
+    riskLevel = 'LOW';
+    sandwichVulnerability = false;
+    reasons.push('Zero slippage tolerance (0.00%). Immune to sandwich attacks.');
   } else {
-    // <= 0.5%
+    // 1 - 50 bps (<= 0.5%)
     mevRiskScore = 5;
     riskLevel = 'LOW';
     sandwichVulnerability = false;

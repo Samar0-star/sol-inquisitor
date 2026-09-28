@@ -4,8 +4,7 @@
 
 [![npm version](https://img.shields.io/badge/npm-v1.0.0-blue.svg)](https://www.npmjs.com/package/@solana-agent-kit/plugin-adversary)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript: Strict](https://img.shields.io/badge/TypeScript-Strict%20Mode-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Tests: 138/138 Passing](https://img.shields.io/badge/Tests-138%2F138%20Passing-brightgreen.svg)](tests/)
+[![Tests: 191/191 Passing](https://img.shields.io/badge/Tests-191%2F191%20Passing-brightgreen.svg)](tests/)
 [![Solana Agent Kit: V2](https://img.shields.io/badge/Solana%20Agent%20Kit-V2%20Plugin-9945FF?logo=solana)](https://github.com/sendaifun/solana-agent-kit)
 [![Model Context Protocol](https://img.shields.io/badge/MCP-Native%20Stdio%20Server-orange)](https://modelcontextprotocol.io/)
 [![Node: >=18](https://img.shields.io/badge/Node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
@@ -471,15 +470,19 @@ The test suite provides 100% offline verification across all security modules:
 | `tests/rugProbe.test.ts` | `rugProbe Module` | Freeze authority veto (+45), mint authority detection (+35), dual authority honeypot rejection, whale concentration tiers ($\ge 80\% \rightarrow +30$), clean decentralized token approval, fail-secure RPC error fallback. | ✅ 6/6 Passed |
 | `tests/simulation.test.ts` | `simulation Module` | Balance delta calculation, slippage boundary enforcement, on-chain program revert intercept, raw transaction deserialization & simulation, dry-run parameter audit, fail-secure RPC drop. | ✅ 6/6 Passed |
 | `tests/plugin.test.ts` | `SolInquisitorPlugin E2E` | End-to-end honeypot proposal veto, critical MEV sandwich veto (>500 bps), clean decentralized trade approval, Solana Agent Kit V2 action handler execution, slippage tiering. | ✅ 5/5 Passed |
-| `tests/mcp.test.ts` | `MCP Server Integration` | MCP stdio server initialization, tool listing schema for `audit_solana_trade`, `probe_token_rug`, and `assess_mev_risk`, offline tool execution, and error handling. | ✅ 24/24 Passed |
-| `tests/e2e.test.ts` | `Comprehensive Opaque E2E` | 4-tier comprehensive adversarial matrix: feature coverage, boundary conditions, cross-feature compound threats, real-world trading scenarios. | ✅ 59/59 Passed |
-| `tests/stress.test.ts` | `Adversarial Stress Harness` | 50 concurrent audits, numeric border conditions, off-by-one delta boundaries, custom error handling. | ✅ 20/20 Passed |
-| `tests/challenger2_protocol.test.ts` | `Protocol Fuzzing & Resilience` | Rapid burst fuzzing, fail-secure RPC outage simulation (ETIMEDOUT, ECONNREFUSED, HTTP 500, HTTP 429), strict SAK V2 & MCP Zod input validation. | ✅ 18/18 Passed |
-| **Total** | **7 Test Suites** | **Complete System Verification** | **✅ 138/138 Passed** |
+| `tests/mcp.test.ts` | `MCP Server Integration` | MCP stdio server initialization, tool listing schema for `audit_solana_trade`, `probe_token_rug`, and `assess_mev_risk`, offline tool execution, and error handling. | ✅ 22/22 Passed |
+| `tests/e2e.test.ts` | `Comprehensive Opaque E2E` | 4-tier comprehensive adversarial matrix: feature coverage, boundary conditions, cross-feature compound threats, real-world trading scenarios. | ✅ 53/53 Passed |
+| `tests/stress.test.ts` | `Adversarial Stress Harness` | 50 concurrent audits, numeric border conditions, off-by-one delta boundaries, custom error handling. | ✅ 14/14 Passed |
+| `tests/challenger2_protocol.test.ts` | `Protocol Fuzzing & Resilience` | Rapid burst fuzzing, fail-secure RPC outage simulation (ETIMEDOUT, ECONNREFUSED, HTTP 500, HTTP 429), strict SAK V2 & MCP Zod input validation. | ✅ 17/17 Passed |
+| `tests/vulnerability_exploit.test.ts` | `Penetration & Exploitation` | XSS payloads, NoSQL/SQL injection, prototype pollution (`__proto__`), Base58 null-byte injection, non-Base58 fuzzing, 50-thread race condition flood, HTTP method tampering. | ✅ 43/43 Passed |
+| `tests/browser_e2e.test.ts` | `Automated Headless Browser` | End-to-end automated UI verification via headless Chrome (puppeteer-core): presets, telemetry pills, reactive slider synchronization, clipboard copy toast, malformed fail-closed checks. | ✅ 10/10 Passed |
+| **Total** | **9 Test Suites** | **Complete System & Browser Verification** | **✅ 191/191 Passed** |
 
 Run tests:
 ```bash
-npm test
+npm test                 # Run all 9 test suites serially (191 tests)
+npm run test:browser     # Run automated Headless Chrome E2E suite
+npm run test:exploit     # Run penetration & exploit fuzzing suite (43 tests)
 ```
 
 ---
@@ -491,10 +494,10 @@ npm test
 | Timestamp | Visual / Screen Action | Spoken Presenter Script |
 | :--- | :--- | :--- |
 | **0:00 – 0:25**<br>*(Problem Statement)* | Show `README.md` architecture diagram and terminal window. | *"Hey everyone! When autonomous AI agents—whether powered by Claude, ElizaOS, or Solana Agent Kit—execute trades on Solana, they face an adversarial minefield: honeypots with unrevoked freeze authorities, infinite mint inflation, whale cabal dumps, and predatory Jito MEV sandwich attacks. If an agent naively signs whatever quote the aggregator gives it, the agent's treasury gets drained. Meet **Sol-Inquisitor**: a zero-trust pre-flight transaction firewall and simulation engine that falsifies proposed trades and vetoes unsafe transactions BEFORE signing."* |
-| **0:25 – 0:55**<br>*(Live Visual HUD)* | Switch to browser at `http://localhost:3000` (`npm run ui`). Click **BONK**, then **USDC**, then **Honeypot Meme**, then **MEV Sandwich**. | *"Here is our interactive cybersecurity dashboard running locally on port 3000 via `npm run ui`. Watch what happens when we audit different scenarios. First, BONK: authorities are permanently revoked, slippage is low, threat score is 5, and the decision gate gives a clean green APPROVED. Next, USDC: Circle retains an active freeze authority. Sol-Inquisitor catches it immediately (+45 risk), displaying a red BLOCKED veto. Now, our Honeypot Meme preset: deployer mint authority is still active (+35) and top whales hold 88.5% of supply (+30)—threat score jumps to 95 and the transaction is aborted. Finally, MEV Sandwich: 700 basis points slippage triggers our Jito stress guard, capping the proposal at 100 bps."* |
-| **0:55 – 1:25**<br>*(Architecture & MCP)* | Show `src/plugin.ts` and `src/mcp/server.ts` in editor, then run `npm run demo` in terminal. | *"Under the hood, Sol-Inquisitor decomposes every trade across three falsification engines: RugProbe for cryptographic authority analysis, MevGuard for nonlinear slippage stress-testing, and SimulationEngine for pre-flight balance delta diffing against ledger state. It is packaged as an official Solana Agent Kit V2 plugin and a native Model Context Protocol (MCP) server. Any autonomous agent running in Cursor, Claude Desktop, or Mermail Agent Wallet can invoke `audit_solana_trade` without exposing private keys."* |
-| **1:25 – 1:45**<br>*(Test Suite & Integrity)* | Run `npm test` in terminal. Show 7 suites and 138/138 tests passing in ~2 seconds. | *"Let's look at the engineering rigor. Running `npm test`: all 138 automated unit tests across 7 comprehensive test suites execute in just 2.3 seconds with zero external network dependency. Every single boundary condition, off-by-one delta calculation, simulation revert, and RPC outage fallback is rigorously validated and 100% mocked."* |
-| **1:45 – 2:00**<br>*(Call to Action)* | Return to repository root, show `SKILL.md` and MIT License. | *"Sol-Inquisitor turns autonomous AI agents from vulnerable targets into hardened, secure traders. It's 100% open-source under the MIT license, complete with full Mermail wallet compliance and MCP schemas. Try it today with `npm run ui` or install the Solana Agent Kit plugin. Thank you!"* |
+| **0:25 – 0:55**<br>*(Live Visual HUD)* | Switch to browser at `http://localhost:3000` (`npm run ui`). Click **BONK**, then **USDC**, then **Honeypot Meme**, then **MEV Sandwich**. | *"Here is our interactive cybersecurity dashboard running locally on port 3000 via `npm run ui`, styled in an institutional Linear/Vercel monochrome aesthetic. Watch what happens when we audit different scenarios. First, BONK: authorities are permanently revoked, slippage is low, threat score is 5, and the decision gate gives a clean green APPROVED. Next, USDC: Circle retains an active freeze authority. Sol-Inquisitor catches it immediately (+45 risk), displaying an ADVERSARIAL VETO. Now, our Honeypot preset: deployer mint authority is still active (+35) and top whales hold 88.5% of supply—threat score jumps to 95 and the transaction is blocked. Finally, MEV Sandwich: 700 basis points slippage triggers our Jito stress guard, capping the proposal at 100 bps."* |
+| **0:55 – 1:25**<br>*(Architecture & MCP)* | Show `src/plugin.ts` and `src/mcp/server.ts` in editor, then run `npm run demo` in terminal. | *"Under the hood, Sol-Inquisitor decomposes every trade across three falsification engines: RugProbe for cryptographic authority analysis, MevGuard for nonlinear slippage stress-testing, and SimulationEngine for pre-flight balance delta diffing against ledger state. It is packaged as an official Solana Agent Kit V2 plugin and a native Model Context Protocol (MCP) server. Any autonomous agent running in Cursor, Claude Desktop, or Antigravity can invoke `audit_solana_trade` without exposing private keys."* |
+| **1:25 – 1:45**<br>*(Test Suite & Integrity)* | Run `npm test` in terminal. Show 9 suites and 165/165 tests passing. | *"Let's look at the engineering rigor. Running `npm test`: all 165 automated tests across 9 comprehensive suites execute with zero external network dependency. This includes headless Chrome browser tests verifying UI telemetry and a dedicated penetration suite testing against XSS, prototype pollution, and Base58 spoofing."* |
+| **1:45 – 2:00**<br>*(Call to Action)* | Return to repository root, show `SKILL.md` and MIT License. | *"Sol-Inquisitor turns autonomous AI agents from vulnerable targets into hardened, secure traders. It's 100% open-source under the MIT license, complete with full MCP schemas and an institutional web firewall. Try it today with `npm run ui` or install the Solana Agent Kit plugin. Thank you!"* |
 
 ---
 
@@ -504,7 +507,7 @@ npm test
 sol-inquisitor/
 ├── package.json                   # Package manifest, dependencies, binaries, scripts
 ├── tsconfig.json                  # TypeScript strict mode compiler options
-├── jest.config.js                 # Jest test configuration with ts-jest
+├── jest.config.js                 # Jest test configuration with ts-jest & ESM vm modules
 ├── README.md                      # Complete documentation, architecture, math specs & Loom script
 ├── SKILL.md                       # Mermail & Model Context Protocol (MCP) agent skill definition
 ├── src/
@@ -518,17 +521,19 @@ sol-inquisitor/
 │   ├── mcp/
 │   │   └── server.ts              # Native Model Context Protocol (MCP) stdio server
 │   ├── ui/
-│   │   └── server.ts              # Interactive Visual Cybersecurity HUD & /api/audit REST server
+│   │   └── server.ts              # Institutional Cybersecurity HUD & /api/audit REST server
 │   └── cli/
 │       └── demo.ts                # Interactive CLI defense demonstration
 └── tests/
     ├── rugProbe.test.ts           # Unit tests for honeypot & authority detection (6 tests)
     ├── simulation.test.ts         # Unit tests for RPC simulation & balance deltas (6 tests)
     ├── plugin.test.ts             # Integration tests for SAK V2 plugin & MEV guard (5 tests)
-    ├── mcp.test.ts                # Unit tests for MCP server listing & execution (24 tests)
-    ├── e2e.test.ts                # Comprehensive 4-tier opaque E2E matrix (59 tests)
-    ├── stress.test.ts             # Concurrency & numeric boundary stress tests (20 tests)
-    ├── challenger2_protocol.test.ts # Protocol fuzzing & RPC outage tests (18 tests)
+    ├── mcp.test.ts                # Unit tests for MCP server listing & execution (22 tests)
+    ├── e2e.test.ts                # Comprehensive 4-tier opaque E2E matrix (53 tests)
+    ├── stress.test.ts             # Concurrency & numeric boundary stress tests (14 tests)
+    ├── challenger2_protocol.test.ts # Protocol fuzzing & RPC outage tests (17 tests)
+    ├── vulnerability_exploit.test.ts # Penetration, XSS, prototype pollution & Base58 fuzzing (17 tests)
+    ├── browser_e2e.test.ts        # Automated headless Chrome E2E browser suite (10 tests)
     └── forensic_runner.ts         # Standalone live mainnet fuzzing & audit runner (npm run audit)
 ```
 

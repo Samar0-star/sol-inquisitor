@@ -15,8 +15,11 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:unit": "jest tests/simulation.test.ts tests/rugProbe.test.ts tests/plugin.test.ts tests/mcp.test.ts tests/e2e.test.ts tests/stress.test.ts tests/challenger2_protocol.test.ts",
+    "test:browser": "NODE_OPTIONS='--experimental-vm-modules' jest tests/browser_e2e.test.ts",
+    "test:exploit": "NODE_OPTIONS='--experimental-vm-modules' jest tests/vulnerability_exploit.test.ts",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
     "demo": "ts-node src/cli/demo.ts",
     "mcp": "ts-node src/mcp/server.ts",
     "ui": "ts-node src/ui/server.ts",
@@ -48,6 +51,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.20.2",
     "jest": "^30.5.1",
+    "puppeteer-core": "^25.12.0",
     "ts-jest": "^29.4.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

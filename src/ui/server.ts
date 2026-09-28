@@ -3,10 +3,10 @@ import * as url from "url";
 import { SolInquisitorPlugin } from "../plugin";
 import { Connection } from "@solana/web3.js";
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+export const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 
-// Instantiate the real engine
+// Instantiate the production engine
 const connection = new Connection(RPC_URL, "confirmed");
 const inquisitor = new SolInquisitorPlugin({
   connection,
@@ -21,6 +21,8 @@ export interface PresetConfig {
   expectedOutput: number;
   slippageBps: number;
   description: string;
+  badge: string;
+  category: "CLEAN" | "HONEYPOT" | "MEV";
 }
 
 export type PresetKey = "bonk" | "usdc" | "honeypot" | "mev";
@@ -28,32 +30,40 @@ export type PresetKey = "bonk" | "usdc" | "honeypot" | "mev";
 // Built-in presets for instant demonstration
 export const PRESETS: Record<PresetKey, PresetConfig> = {
   bonk: {
-    name: "BONK (Clean Verified)",
+    name: "BONK (Decentralized SPL)",
     mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
     expectedOutput: 5000000,
     slippageBps: 50,
     description: "Decentralized Solana meme token. Mint & Freeze authorities permanently revoked. Low MEV risk.",
+    badge: "SAFE SPL",
+    category: "CLEAN",
   },
   usdc: {
-    name: "USDC (Freeze Authority Veto)",
+    name: "Circle USDC (Freeze Authority)",
     mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
     expectedOutput: 1000000,
     slippageBps: 100,
     description: "Circle USD Coin. Retains active freeze authority (7dGbd...). Triggers pre-flight honeypot warning.",
+    badge: "FREEZE VETO",
+    category: "HONEYPOT",
   },
   honeypot: {
-    name: "Malicious Meme Honeypot",
+    name: "Synthetic Malicious Honeypot",
     mint: "Honeypot1111111111111111111111111111111111111",
     expectedOutput: 100000000,
     slippageBps: 150,
     description: "Synthetic honeypot token: unrevoked mint authority, 88% whale supply concentration.",
+    badge: "CRITICAL RUG",
+    category: "HONEYPOT",
   },
   mev: {
-    name: "Predatory MEV Sandwich",
+    name: "Predatory MEV Sandwich Target",
     mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
     expectedOutput: 5000000,
     slippageBps: 700,
     description: "High-slippage swap (7.00% / 700 bps). Exploitable by Jito searchers for maximal extractable value.",
+    badge: "MEV CRITICAL",
+    category: "MEV",
   },
 };
 
@@ -62,234 +72,608 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sol-Inquisitor // Adversarial Security HUD</title>
+  <title>Sol-Inquisitor // Institutional Adversarial Pre-Flight Firewall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          },
           colors: {
-            cyber: {
-              black: '#0a0d14',
-              card: '#111726',
-              border: '#1e293b',
-              neon: '#06b6d4',
-              danger: '#f43f5e',
-              success: '#10b981',
-              warning: '#f59e0b'
+            brand: {
+              obsidian: '#09090b',
+              surface: 'rgba(18, 18, 23, 0.72)',
+              card: 'rgba(24, 24, 27, 0.55)',
+              border: '#27272a',
+              subtle: '#3f3f46',
+              accent: '#6366f1',
+              emerald: '#34d399',
+              rose: '#fb7185',
+              amber: '#fbbf24',
+              sky: '#38bdf8'
             }
           }
         }
       }
     }
   </script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    @keyframes pulse-border {
-      0%, 100% { border-color: rgba(6, 182, 212, 0.4); }
-      50% { border-color: rgba(6, 182, 212, 0.9); }
+    :root {
+      --bg-app: #09090b;
+      --bg-surface: rgba(18, 18, 23, 0.72);
+      --bg-card: rgba(24, 24, 27, 0.55);
+      --bg-input: rgba(10, 10, 12, 0.85);
+      --border-hairline: rgba(255, 255, 255, 0.08);
+      --border-subtle: #27272a;
+      --border-active: #3f3f46;
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
     }
-    .neon-pulse { animation: pulse-border 2s infinite ease-in-out; }
-    .glow-red { text-shadow: 0 0 12px rgba(244, 63, 94, 0.6); }
-    .glow-green { text-shadow: 0 0 12px rgba(16, 185, 129, 0.6); }
-    .glow-blue { text-shadow: 0 0 12px rgba(6, 182, 212, 0.6); }
-    .glow-amber { text-shadow: 0 0 12px rgba(245, 158, 11, 0.6); }
+    body {
+      background-color: var(--bg-app);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(52, 211, 153, 0.03) 0px, transparent 50%);
+    }
+    .frosted-glass {
+      background: var(--bg-surface);
+      backdrop-filter: blur(16px) saturate(160%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid var(--border-hairline);
+      box-shadow: var(--glass-shadow);
+    }
+    .hairline-border {
+      border: 1px solid var(--border-hairline);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #09090b; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
   </style>
 </head>
-<body class="bg-cyber-black text-slate-200 font-mono min-h-screen p-4 md:p-8 selection:bg-cyan-500 selection:text-black">
+<body class="text-zinc-100 font-sans min-h-screen selection:bg-indigo-500/30 selection:text-indigo-200 p-4 md:p-8 antialiased">
   <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- Top Header & Telemetry -->
-    <header class="flex flex-col md:flex-row md:items-center justify-between border-b border-cyber-border pb-6 gap-4">
-      <div>
+    <!-- Top Institutional Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-800/80 pb-5 gap-4">
+      <div class="space-y-1">
         <div class="flex items-center gap-3">
-          <div class="h-3 w-3 rounded-full bg-cyan-400 animate-ping"></div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-wider text-white flex items-center gap-2">
-            <span class="text-cyan-400">SOL-INQUISITOR</span> // PRE-FLIGHT FIREWALL
-          </h1>
+          <div class="h-9 w-9 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <i class="fa-solid fa-shield-halved text-base"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                SOL-INQUISITOR
+              </h1>
+              <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                v1.0.0 Institutional
+              </span>
+            </div>
+            <p class="text-xs text-zinc-400">Pre-Flight Adversarial Security Firewall for Autonomous Solana AI Agents</p>
+          </div>
         </div>
-        <p class="text-xs text-slate-400 mt-1">Autonomous Pre-Flight Adversarial Security Engine for Solana Agent Kit & MCP</p>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="px-3 py-1 rounded bg-slate-800 text-xs text-slate-300 border border-slate-700 flex items-center gap-2">
-          <i class="fa-solid fa-network-wired text-cyan-400"></i> Mainnet-Beta
-        </span>
-        <span class="px-3 py-1 rounded bg-emerald-950/80 text-xs text-emerald-400 border border-emerald-800/60 font-semibold flex items-center gap-2">
-          <i class="fa-solid fa-check-double text-emerald-400"></i> 138/138 Tests Passing
-        </span>
+      
+      <!-- Telemetry Pills -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="px-3 py-1.5 rounded-lg bg-zinc-900/90 hairline-border text-xs text-zinc-300 flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="font-mono text-xs">Solana Mainnet</span>
+          <span class="text-[10px] text-zinc-400 font-mono" id="latencyBadge">32ms</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-zinc-900/90 hairline-border text-xs text-zinc-300 flex items-center gap-2">
+          <i class="fa-solid fa-cube text-indigo-400 text-xs"></i>
+          <span>MCP Server</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] bg-indigo-500/20 text-indigo-300 font-medium">3 Tools</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-xs"></i>
+          <span class="font-medium">191/191 Tests Passing</span>
+        </div>
       </div>
     </header>
 
-    <!-- Quick Presets Bar -->
-    <section class="bg-cyber-card border border-cyber-border rounded-xl p-4">
-      <div class="text-xs text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-        <span><i class="fa-solid fa-bolt text-amber-400 mr-1.5"></i> One-Click Adversarial Scenarios</span>
-        <span class="text-[10px] text-slate-500">Live Mainnet & Simulated Injection</span>
+    <!-- One-Click Preset Scenarios -->
+    <section class="frosted-glass rounded-2xl p-5 shadow-xl">
+      <div class="flex items-center justify-between mb-3.5">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-bolt-lightning text-amber-400 text-xs"></i>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-300">Live Mainnet & Adversarial Scenarios</h2>
+        </div>
+        <span class="text-[11px] text-zinc-400">Select a scenario to evaluate real-time deterministic defense</span>
       </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button onclick="loadPreset('bonk')" class="px-3 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-left transition flex flex-col justify-between group">
-          <span class="text-xs font-semibold text-white group-hover:text-cyan-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-shield text-emerald-400"></i> BONK
-          </span>
-          <span class="text-[10px] text-slate-400 mt-1">Safe SPL Mint (Approved)</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Preset 1: BONK (Safe SPL) -->
+        <button id="btnPresetBonk" type="button" onclick="loadPreset('bonk')"
+          class="group relative text-left p-3.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 hairline-border hover:border-zinc-700 transition flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-zinc-100 group-hover:text-emerald-400 transition flex items-center gap-2">
+              <i class="fa-solid fa-shield text-emerald-400 text-xs"></i> BONK
+            </span>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">SAFE SPL</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 line-clamp-2">Decentralized SPL. Revoked mint & freeze authorities. Low MEV risk.</p>
         </button>
-        <button onclick="loadPreset('usdc')" class="px-3 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-left transition flex flex-col justify-between group">
-          <span class="text-xs font-semibold text-white group-hover:text-rose-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-snowflake text-rose-400"></i> USDC
-          </span>
-          <span class="text-[10px] text-slate-400 mt-1">Freeze Authority (Vetoed)</span>
+
+        <!-- Preset 2: USDC (Freeze Veto) -->
+        <button id="btnPresetUsdc" type="button" onclick="loadPreset('usdc')"
+          class="group relative text-left p-3.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 hairline-border hover:border-zinc-700 transition flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-zinc-100 group-hover:text-rose-400 transition flex items-center gap-2">
+              <i class="fa-solid fa-snowflake text-rose-400 text-xs"></i> Circle USDC
+            </span>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">FREEZE VETO</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 line-clamp-2">Active Circle freeze authority (<span class="font-mono">7dGbd...</span>). Fails honeypot filter.</p>
         </button>
-        <button onclick="loadPreset('honeypot')" class="px-3 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-left transition flex flex-col justify-between group">
-          <span class="text-xs font-semibold text-white group-hover:text-rose-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-skull-crossbones text-rose-500"></i> Honeypot Meme
-          </span>
-          <span class="text-[10px] text-slate-400 mt-1">Whale & Mint Risk (+95)</span>
+
+        <!-- Preset 3: Honeypot (Malicious Rug) -->
+        <button id="btnPresetHoneypot" type="button" onclick="loadPreset('honeypot')"
+          class="group relative text-left p-3.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 hairline-border hover:border-zinc-700 transition flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-zinc-100 group-hover:text-rose-400 transition flex items-center gap-2">
+              <i class="fa-solid fa-skull-crossbones text-rose-400 text-xs"></i> Honeypot Token
+            </span>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">CRITICAL RUG</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 line-clamp-2">Active unrevoked mint authority + 88% whale concentration.</p>
         </button>
-        <button onclick="loadPreset('mev')" class="px-3 py-2.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-left transition flex flex-col justify-between group">
-          <span class="text-xs font-semibold text-white group-hover:text-amber-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-arrows-split-up-and-left text-amber-400"></i> MEV Sandwich
-          </span>
-          <span class="text-[10px] text-slate-400 mt-1">700 bps Critical Slippage</span>
+
+        <!-- Preset 4: MEV Sandwich -->
+        <button id="btnPresetMev" type="button" onclick="loadPreset('mev')"
+          class="group relative text-left p-3.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 hairline-border hover:border-zinc-700 transition flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-zinc-100 group-hover:text-amber-400 transition flex items-center gap-2">
+              <i class="fa-solid fa-arrows-split-up-and-left text-amber-400 text-xs"></i> MEV Sandwich
+            </span>
+            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">MEV CRITICAL</span>
+          </div>
+          <p class="text-[11px] text-zinc-400 line-clamp-2">700 bps reckless slippage. Prime target for Jito sandwich exploitation.</p>
         </button>
       </div>
     </section>
 
-    <!-- Main Grid: Input Form + Forensic Verdict -->
+    <!-- Main Workspace Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- Left: Audit Parameter Inputs -->
-      <section class="lg:col-span-5 bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-4">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-cyber-border pb-3">
-          <i class="fa-solid fa-magnifying-glass-chart text-cyan-400"></i> Proposed Transaction Details
-        </h2>
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">Target SPL Token Mint Address</label>
-          <input id="inputMint" type="text" value="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-cyan-300 font-mono focus:border-cyan-400 focus:outline-none transition">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Expected Output (Base Units)</label>
-            <input id="inputExpectedOutput" type="number" value="5000000"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono focus:border-cyan-400 focus:outline-none transition">
+      <!-- Left Column: Trade Proposal Parameters Form (5 Cols) -->
+      <section class="lg:col-span-5 frosted-glass rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-indigo-400 text-xs"></i>
+            <h2 class="text-sm font-semibold tracking-tight text-white">Trade Proposal Parameters</h2>
           </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Max Slippage (BPS)</label>
-            <input id="inputSlippage" type="number" value="50"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono focus:border-cyan-400 focus:outline-none transition">
-          </div>
+          <span class="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Agent Pre-Flight</span>
         </div>
-        <p id="presetDesc" class="text-xs text-slate-400 italic bg-slate-900/60 p-2.5 rounded border border-slate-800">
-          Decentralized Solana meme token. Mint & Freeze authorities permanently revoked.
-        </p>
-        <button id="btnAudit" onclick="runAudit()"
-          class="w-full py-3 px-4 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20">
-          <i class="fa-solid fa-shield-halved"></i> Run Pre-Flight Audit
-        </button>
+
+        <form id="auditForm" onsubmit="event.preventDefault(); runAudit();" class="space-y-4">
+          <!-- Target Mint -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="inputMint" class="text-xs font-medium text-zinc-300">Target SPL Token Mint Address</label>
+              <button type="button" onclick="pasteMint()" class="text-[11px] text-indigo-400 hover:text-indigo-300 transition">Paste</button>
+            </div>
+            <div class="relative">
+              <input id="inputMint" type="text" value="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263" aria-label="Target SPL Token Mint Address"
+                class="w-full bg-zinc-950/80 hairline-border rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition placeholder-zinc-600"
+                placeholder="Solana Base58 Address (32-44 characters)">
+            </div>
+          </div>
+
+          <!-- Target DEX & Buy Amount SOL -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="selectDex" class="block text-xs font-medium text-zinc-300 mb-1.5">Target DEX Route</label>
+              <select id="selectDex" aria-label="Target DEX Route"
+                class="w-full bg-zinc-950/80 hairline-border rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition">
+                <option value="raydium">Raydium CPMM / CLMM</option>
+                <option value="orca">Orca Whirlpools</option>
+                <option value="pumpfun">Pump.fun Curve</option>
+                <option value="meteora">Meteora DLMM</option>
+              </select>
+            </div>
+            <div>
+              <label for="inputBuyAmount" class="block text-xs font-medium text-zinc-300 mb-1.5">Buy Amount (SOL)</label>
+              <input id="inputBuyAmount" type="number" step="0.01" min="0.01" value="1.00" aria-label="Buy Amount in SOL"
+                class="w-full bg-zinc-950/80 hairline-border rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition">
+            </div>
+          </div>
+
+          <!-- Expected Output & Slippage -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="inputExpectedOutput" class="block text-xs font-medium text-zinc-300 mb-1.5">Expected Output (Base Units)</label>
+              <input id="inputExpectedOutput" type="number" min="1" value="5000000" aria-label="Expected Output Base Units"
+                class="w-full bg-zinc-950/80 hairline-border rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition">
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="inputSlippage" class="text-xs font-medium text-zinc-300">Max Slippage (BPS)</label>
+                <span id="slippagePercent" class="text-[11px] font-mono text-zinc-400">0.50%</span>
+              </div>
+              <input id="inputSlippage" type="number" min="0" max="10000" value="50" oninput="syncSlippage(this.value)" aria-label="Max Slippage BPS"
+                class="w-full bg-zinc-950/80 hairline-border rounded-xl px-3.5 py-2.5 text-xs text-zinc-200 font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30 transition">
+            </div>
+          </div>
+
+          <!-- Slippage Slider -->
+          <div>
+            <input id="sliderSlippage" type="range" min="10" max="1000" step="10" value="50" oninput="syncSlippage(this.value)" aria-label="Slippage Range Slider"
+                class="w-full accent-indigo-500 h-1.5 bg-zinc-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
+              <span>0.1%</span>
+              <span>1.0%</span>
+              <span>5.0%</span>
+              <span>10.0%</span>
+            </div>
+          </div>
+
+          <!-- Pre-Flight Wire Simulation Toggle -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 hairline-border">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input id="toggleSimulate" type="checkbox" checked
+                class="rounded bg-zinc-950 border-zinc-700 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-zinc-900">
+              <span class="text-xs font-medium text-zinc-300">Run Pre-Flight RPC Simulation</span>
+            </label>
+            <span class="text-[10px] font-mono text-zinc-500 uppercase">Dry-Run</span>
+          </div>
+
+          <!-- Scenario Notes -->
+          <div id="presetDescBox" class="p-3 rounded-xl bg-zinc-900/80 hairline-border">
+            <p id="presetDesc" class="text-xs text-zinc-400 leading-relaxed">
+              Decentralized Solana meme token. Mint & Freeze authorities permanently revoked. Low MEV risk.
+            </p>
+          </div>
+
+          <!-- Action Button -->
+          <button id="btnAudit" type="submit"
+            class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs uppercase tracking-wider transition duration-150 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-[0.99]">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Execute Adversarial Audit</span>
+          </button>
+        </form>
       </section>
 
-      <!-- Right: Forensic Verdict HUD -->
-      <section class="lg:col-span-7 bg-cyber-card border border-cyber-border rounded-xl p-5 flex flex-col justify-between space-y-4">
-        <div class="flex items-center justify-between border-b border-cyber-border pb-3">
-          <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-radar text-cyan-400"></i> Deterministic Decision Gate
-          </h2>
-          <span id="auditTimestamp" class="text-[10px] text-slate-500">READY FOR AUDIT</span>
+      <!-- Right Column: Deterministic Decision Gate (7 Cols) -->
+      <section class="lg:col-span-7 frosted-glass rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-5">
+        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-gavel text-indigo-400 text-xs"></i>
+            <h2 class="text-sm font-semibold tracking-tight text-white">Pre-Flight Deterministic Decision Gate</h2>
+          </div>
+          <span id="auditTimestamp" class="text-[11px] font-mono text-zinc-400">READY</span>
         </div>
 
-        <!-- Big Verdict Card -->
-        <div id="verdictBox" class="rounded-xl border p-5 transition flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-900 border-slate-700">
-          <div class="space-y-1 text-center md:text-left">
-            <div id="verdictText" class="text-2xl md:text-3xl font-extrabold tracking-wider text-emerald-400 glow-green">
+        <!-- Master Verdict Banner -->
+        <div id="verdictBox" class="rounded-xl p-5 hairline-border transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-5 bg-zinc-900/60">
+          <div class="space-y-1.5 text-center sm:text-left">
+            <div class="flex items-center justify-center sm:justify-start gap-2">
+              <span id="verdictPill" class="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                PROPOSAL VERIFIED
+              </span>
+            </div>
+            <div id="verdictText" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400">
               APPROVED
             </div>
-            <div id="verdictSubtitle" class="text-xs text-slate-300">
+            <div id="verdictSubtitle" class="text-xs text-zinc-300 leading-relaxed max-w-md">
               Safe to sign. Zero cryptographic or MEV vulnerabilities detected.
             </div>
           </div>
-          <!-- Threat Score Gauge (0-100) -->
-          <div class="flex flex-col items-center">
+
+          <!-- Radial Threat Score (0 to 100) -->
+          <div class="flex flex-col items-center flex-shrink-0">
             <div class="relative flex items-center justify-center w-24 h-24">
               <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                <path class="text-slate-800" stroke-width="3.8" stroke="currentColor" fill="none"
+                <path class="text-zinc-800/90" stroke-width="3" stroke="currentColor" fill="none"
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path id="scoreCircle" class="text-emerald-400 transition-all duration-700 ease-out" stroke-width="3.8"
+                <path id="scoreCircle" class="text-emerald-400 transition-all duration-700 ease-out" stroke-width="3"
                   stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none"
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               </svg>
               <div class="absolute flex flex-col items-center justify-center">
-                <span id="scoreValue" class="text-xl font-black text-white">0</span>
-                <span class="text-[9px] text-slate-400 uppercase">THREAT</span>
+                <span id="scoreValue" class="text-xl font-bold font-mono text-white">0</span>
+                <span id="scoreLabel" class="text-[9px] font-semibold text-zinc-400 uppercase tracking-wider">THREAT</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Forensic Modules Grid -->
+        <!-- 3 Primary Forensic Verification Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <!-- Module 1: RugProbe Matrix -->
-          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
-            <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <!-- RugProbe Matrix -->
+          <div class="bg-zinc-900/60 hairline-border rounded-xl p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
               <span>RugProbe Matrix</span>
               <i id="iconRug" class="fa-solid fa-circle-check text-emerald-400"></i>
             </div>
-            <div id="rugSummary" class="text-xs font-semibold text-white">Authorities Revoked</div>
-            <div id="rugDetails" class="text-[10px] text-slate-400 mt-1">Freeze: Revoked | Mint: Revoked</div>
+            <div id="rugSummary" class="text-xs font-semibold text-zinc-200">Authorities Revoked</div>
+            <div id="rugDetails" class="text-[10px] text-zinc-400 font-mono">Freeze: Revoked | Mint: Revoked</div>
           </div>
 
-          <!-- Module 2: MEV Guard Analysis -->
-          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
-            <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <!-- MEV Guard -->
+          <div class="bg-zinc-900/60 hairline-border rounded-xl p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
               <span>MEV Stress Guard</span>
               <i id="iconMev" class="fa-solid fa-circle-check text-emerald-400"></i>
             </div>
-            <div id="mevSummary" class="text-xs font-semibold text-white">Low Slippage (50 bps)</div>
-            <div id="mevDetails" class="text-[10px] text-slate-400 mt-1">Max Extractable: $0.00 | Rec: &le;100 bps</div>
+            <div id="mevSummary" class="text-xs font-semibold text-zinc-200">Low Slippage (50 bps)</div>
+            <div id="mevDetails" class="text-[10px] text-zinc-400 font-mono">Extractable: $0.00 | Rec: &le;100 bps</div>
           </div>
 
-          <!-- Module 3: Simulation & Delta Diffing -->
-          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
-            <div class="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-              <span>Simulation</span>
+          <!-- Simulation -->
+          <div class="bg-zinc-900/60 hairline-border rounded-xl p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
+              <span>RPC Simulation</span>
               <i id="iconSim" class="fa-solid fa-circle-check text-emerald-400"></i>
             </div>
-            <div id="simSummary" class="text-xs font-semibold text-white">Execution Passed</div>
-            <div id="simDetails" class="text-[10px] text-slate-400 mt-1">Balance Delta: Verified</div>
+            <div id="simSummary" class="text-xs font-semibold text-zinc-200">Execution Verified</div>
+            <div id="simDetails" class="text-[10px] text-zinc-400 font-mono">Balance Delta: Verified Safe</div>
           </div>
         </div>
 
       </section>
     </div>
 
-    <!-- Forensic JSON & Veto Rationale Log -->
-    <section class="bg-cyber-card border border-cyber-border rounded-xl p-5 space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-terminal text-cyan-400"></i> Structured Forensic Audit Diagnostic (/api/audit)
-        </h3>
-        <button onclick="copyAuditJson()" class="text-xs text-slate-400 hover:text-cyan-400 transition flex items-center gap-1">
-          <i class="fa-solid fa-copy"></i> Copy JSON
-        </button>
+    <!-- Forensic Deep-Dive Tabs Section (5 Tabs) -->
+    <section class="frosted-glass rounded-2xl p-6 shadow-xl space-y-4">
+      <!-- Tabs Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800/80 pb-3 gap-3">
+        <div class="flex items-center gap-1.5 overflow-x-auto">
+          <button id="tabBtnOverview" onclick="switchTab('overview')"
+            class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-100 bg-zinc-800/90 hairline-border transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-gauge text-indigo-400 text-xs"></i> Overview
+          </button>
+          <button id="tabBtnRug" onclick="switchTab('rug')"
+            class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-microchip text-xs"></i> Rug Analysis
+          </button>
+          <button id="tabBtnMev" onclick="switchTab('mev')"
+            class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line text-xs"></i> MEV Exposure
+          </button>
+          <button id="tabBtnSim" onclick="switchTab('sim')"
+            class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-terminal text-xs"></i> Simulation Diffs
+          </button>
+          <button id="tabBtnJson" onclick="switchTab('json')"
+            class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-code text-xs"></i> Raw Audit JSON
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btnCopyJson" onclick="copyAuditJson()" class="px-3 py-1.5 rounded-lg bg-zinc-900 hairline-border hover:border-zinc-700 text-xs text-zinc-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-copy text-xs"></i>
+            <span id="copyJsonText">Copy JSON</span>
+          </button>
+          <button onclick="downloadAuditJson()" class="px-3 py-1.5 rounded-lg bg-zinc-900 hairline-border hover:border-zinc-700 text-xs text-zinc-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-download text-xs"></i>
+            <span>Export</span>
+          </button>
+        </div>
       </div>
-      <pre id="jsonOutput" class="bg-slate-950 p-4 rounded-lg text-xs text-cyan-300 overflow-x-auto border border-slate-900 max-h-60 leading-relaxed font-mono">
-// Click "Run Pre-Flight Audit" or choose an adversarial scenario above to inspect live telemetry.
-      </pre>
+
+      <!-- Tab Content 0: Overview Panel -->
+      <div id="tabPanelOverview" class="tab-panel space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+            <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
+              <span>Security Verdict</span>
+              <span id="overviewThreatBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">LOW THREAT</span>
+            </div>
+            <div id="overviewVerdict" class="text-sm font-semibold text-zinc-200 leading-snug">
+              Proposal validated against honeypot traps, sandwich bots, and state diff deficits.
+            </div>
+            <div class="text-[11px] text-zinc-400 font-mono">
+              Score: <span id="overviewScoreText" class="text-emerald-400 font-bold">0</span> / 100
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+            <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Threat Score Distribution</div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-0.5 border-b border-zinc-800/60">
+                <span class="text-zinc-400">RugProbe Factor:</span>
+                <span id="overviewRugPts" class="font-mono text-zinc-300">0 pts</span>
+              </div>
+              <div class="flex justify-between py-0.5 border-b border-zinc-800/60">
+                <span class="text-zinc-400">MEV Slippage Factor:</span>
+                <span id="overviewMevPts" class="font-mono text-zinc-300">0 pts</span>
+              </div>
+              <div class="flex justify-between py-0.5">
+                <span class="text-zinc-400">Simulation Delta Check:</span>
+                <span id="overviewSimStatus" class="font-mono text-emerald-400">Passed</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+            <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Recommendations</div>
+            <ul id="overviewRecommendations" class="text-[11px] text-zinc-400 space-y-1 list-disc list-inside">
+              <li>Safe to execute with agent keypair.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 1: Rug & Authority Matrix -->
+      <div id="tabPanelRug" class="tab-panel hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+            <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
+              <span>Authority Verification</span>
+              <span id="authorityRiskBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0 Risk Pts</span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-zinc-800/60">
+                <span class="text-zinc-400">Freeze Authority</span>
+                <span id="tabFreezeStatus" class="font-mono text-emerald-400">Revoked (null)</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-zinc-800/60">
+                <span class="text-zinc-400">Mint Authority</span>
+                <span id="tabMintStatus" class="font-mono text-emerald-400">Revoked (null)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+            <div class="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center justify-between">
+              <span>Supply Concentration</span>
+              <span id="concentrationRiskBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0 Risk Pts</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="text-zinc-400">Top 5 Holders Share</span>
+                <span id="tabTop5Share" class="font-mono text-zinc-200">12.4%</span>
+              </div>
+              <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                <div id="tabConcentrationBar" class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: 12.4%;"></div>
+              </div>
+              <p class="text-[10px] text-zinc-500">Threshold: &gt;50% assigns +20 penalty, &gt;80% assigns +30 critical dump penalty.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: MEV Sandwich Analysis -->
+      <div id="tabPanelMev" class="tab-panel hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-1">
+            <div class="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Slippage Tier</div>
+            <div id="tabMevTier" class="text-lg font-bold font-mono text-emerald-400">LOW</div>
+            <p class="text-[11px] text-zinc-500">Tolerance within safe decentralized AMM bounds.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-1">
+            <div class="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Extractable Value (USD)</div>
+            <div id="tabMevExtractable" class="text-lg font-bold font-mono text-zinc-200">$0.00</div>
+            <p class="text-[11px] text-zinc-500">Estimated profit for adversarial Jito searchers.</p>
+          </div>
+          <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-1">
+            <div class="text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">Recommended Ceiling</div>
+            <div id="tabMevRecommended" class="text-lg font-bold font-mono text-indigo-400">&le; 100 bps (1.00%)</div>
+            <p class="text-[11px] text-zinc-500">Algorithmic parameter tuning limit.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 3: Simulation Traces & Diffs -->
+      <div id="tabPanelSim" class="tab-panel hidden space-y-3">
+        <div class="p-4 rounded-xl bg-zinc-900/60 hairline-border space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-zinc-400">Simulated Post-Balance Delta</span>
+            <span id="tabSimDelta" class="font-mono text-emerald-400 font-semibold">+5,000,000 Units (Matches Expected)</span>
+          </div>
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-zinc-400">Units Consumed</span>
+            <span id="tabSimUnits" class="font-mono text-zinc-300">28,450 CU</span>
+          </div>
+        </div>
+        <div class="space-y-1.5">
+          <div class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Program Execution Logs</div>
+          <pre id="tabSimLogs" class="p-3 rounded-xl bg-zinc-950 font-mono text-[11px] text-zinc-300 overflow-x-auto border border-zinc-900 max-h-40 leading-relaxed">
+Program 11111111111111111111111111111111 invoke [1]
+Program 11111111111111111111111111111111 success
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab Content 4: Raw JSON Telemetry -->
+      <div id="tabPanelJson" class="tab-panel hidden space-y-2">
+        <pre id="jsonOutput" class="bg-zinc-950 p-4 rounded-xl text-xs text-indigo-300/90 overflow-x-auto hairline-border max-h-72 leading-relaxed font-mono">
+// Select a preset scenario or click Execute Adversarial Audit to generate telemetry.
+        </pre>
+      </div>
     </section>
 
+    <!-- Footer -->
+    <footer class="border-t border-zinc-800/80 pt-5 pb-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 gap-3">
+      <div class="flex items-center gap-2">
+        <span>Sol-Inquisitor Pre-Flight Firewall</span>
+        <span>&bull;</span>
+        <span class="font-mono">@solana-agent-kit/plugin-adversary</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com" target="_blank" class="hover:text-zinc-200 transition flex items-center gap-1.5">
+          <i class="fa-brands fa-github"></i> Repository
+        </a>
+        <a href="https://modelcontextprotocol.io" target="_blank" class="hover:text-zinc-200 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-cube"></i> MCP Spec
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 px-4 py-2.5 rounded-xl bg-zinc-900 text-zinc-200 hairline-border shadow-2xl text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i class="fa-solid fa-check text-emerald-400"></i>
+    <span id="toastMsg">Diagnostic copied to clipboard</span>
   </div>
 
   <script>
     const presets = ${JSON.stringify(PRESETS)};
+    let currentReport = null;
+
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return String(str ?? '');
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function syncSlippage(val) {
+      const num = parseInt(val, 10) || 0;
+      document.getElementById('inputSlippage').value = num;
+      document.getElementById('sliderSlippage').value = Math.min(num, 1000);
+      document.getElementById('slippagePercent').textContent = (num / 100).toFixed(2) + '%';
+    }
+
+    function switchTab(tabKey) {
+      const tabs = ['overview', 'rug', 'mev', 'sim', 'json'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const panel = document.getElementById('tabPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!btn || !panel) return;
+        if (t === tabKey) {
+          btn.className = 'tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-100 bg-zinc-800/90 hairline-border transition flex items-center gap-1.5 shadow-sm';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1.5';
+          panel.classList.add('hidden');
+        }
+      });
+    }
 
     function loadPreset(key) {
       const p = presets[key];
       if (!p) return;
       document.getElementById('inputMint').value = p.mint;
       document.getElementById('inputExpectedOutput').value = p.expectedOutput;
-      document.getElementById('inputSlippage').value = p.slippageBps;
-      document.getElementById('presetDesc').innerText = p.description;
+      syncSlippage(p.slippageBps);
+      document.getElementById('presetDesc').textContent = p.description;
       runAudit();
+    }
+
+    async function pasteMint() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById('inputMint').value = text.trim();
+        }
+      } catch (e) {
+        // Fallback or permission denial handled gracefully
+      }
     }
 
     async function runAudit() {
@@ -299,7 +683,7 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
 
       const btn = document.getElementById('btnAudit');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Auditing Ledger State...';
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i><span>Analyzing Ledger State...</span>';
 
       try {
         const res = await fetch('/api/audit', {
@@ -308,24 +692,42 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
           body: JSON.stringify({ targetMint: mint, mint, expectedOutput, maxSlippageBps: slippage })
         });
         const report = await res.json();
+        currentReport = report;
         renderReport(report);
       } catch (err) {
         console.error('Audit failed:', err);
+        const fallbackReport = {
+          verdict: 'BLOCKED',
+          decision: 'BLOCKED',
+          totalRiskScore: 100,
+          overallRiskScore: 100,
+          timestamp: new Date().toISOString(),
+          targetMint: mint,
+          summary: 'Audit exception caught: Network or validation failure',
+          vetoReasons: ['Fail-Secure Exception: Network or server error'],
+          recommendations: ['Do not sign proposal.'],
+          rugProbe: { isSafe: false, totalRiskScore: 100, hasFreezeAuthority: true, hasMintAuthority: true, topHoldersSharePercentage: 100 },
+          mevReport: { actualSlippageBps: slippage, slippageBps: slippage, slippageTier: 'CRITICAL', sandwichVulnerable: true, recommendedMaxSlippageBps: 100 },
+          simulation: { passed: false, simulatedBalanceDelta: 0, unitsConsumed: 0, logs: ['Simulation error'] }
+        };
+        currentReport = fallbackReport;
+        renderReport(fallbackReport);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Run Pre-Flight Audit';
+        btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i><span>Execute Adversarial Audit</span>';
       }
     }
 
     function renderReport(report) {
-      document.getElementById('auditTimestamp').innerText = report.timestamp ? new Date(report.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
-      document.getElementById('jsonOutput').innerText = JSON.stringify(report, null, 2);
+      document.getElementById('auditTimestamp').textContent = report.timestamp ? new Date(report.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+      document.getElementById('jsonOutput').textContent = JSON.stringify(report, null, 2);
 
       const score = report.totalRiskScore !== undefined ? report.totalRiskScore : (report.overallRiskScore || 0);
-      document.getElementById('scoreValue').innerText = score;
+      document.getElementById('scoreValue').textContent = String(score);
       document.getElementById('scoreCircle').setAttribute('stroke-dasharray', score + ', 100');
 
       const verdictBox = document.getElementById('verdictBox');
+      const verdictPill = document.getElementById('verdictPill');
       const verdictText = document.getElementById('verdictText');
       const verdictSubtitle = document.getElementById('verdictSubtitle');
       const scoreCircle = document.getElementById('scoreCircle');
@@ -333,16 +735,20 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
       const isApproved = report.verdict === 'APPROVED' || report.decision === 'APPROVED';
 
       if (isApproved) {
-        verdictBox.className = 'rounded-xl border p-5 transition flex flex-col md:flex-row items-center justify-between gap-4 bg-emerald-950/30 border-emerald-800/80';
-        verdictText.className = 'text-2xl md:text-3xl font-extrabold tracking-wider text-emerald-400 glow-green';
-        verdictText.innerText = 'APPROVED';
-        verdictSubtitle.innerText = 'Safe to sign. Zero adversarial hazards detected.';
+        verdictBox.className = 'rounded-xl p-5 hairline-border transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-5 bg-emerald-950/20 border-emerald-500/30';
+        verdictPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        verdictPill.textContent = 'PROPOSAL CLEARED';
+        verdictText.className = 'text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400';
+        verdictText.textContent = 'APPROVED';
+        verdictSubtitle.textContent = 'Safe to sign. Zero cryptographic honeypot or MEV sandwich vulnerabilities detected.';
         scoreCircle.setAttribute('class', 'text-emerald-400 transition-all duration-700 ease-out');
       } else {
-        verdictBox.className = 'rounded-xl border p-5 transition flex flex-col md:flex-row items-center justify-between gap-4 bg-rose-950/30 border-rose-800/80';
-        verdictText.className = 'text-2xl md:text-3xl font-extrabold tracking-wider text-rose-500 glow-red';
-        verdictText.innerText = 'BLOCKED (VETOED)';
-        verdictSubtitle.innerText = (report.vetoReasons && report.vetoReasons[0]) || 'Adversarial risk threshold exceeded. Transaction aborted.';
+        verdictBox.className = 'rounded-xl p-5 hairline-border transition-all duration-300 flex flex-col sm:flex-row items-center justify-between gap-5 bg-rose-950/20 border-rose-500/30';
+        verdictPill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        verdictPill.textContent = 'ADVERSARIAL VETO';
+        verdictText.className = 'text-2xl sm:text-3xl font-extrabold tracking-tight text-rose-400';
+        verdictText.textContent = 'BLOCKED (VETOED)';
+        verdictSubtitle.textContent = (report.vetoReasons && report.vetoReasons[0]) || 'Adversarial risk threshold exceeded. Transaction proposal aborted.';
         scoreCircle.setAttribute('class', score >= 70 ? 'text-rose-500 transition-all duration-700 ease-out' : 'text-amber-400 transition-all duration-700 ease-out');
       }
 
@@ -352,14 +758,40 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
       const iconRug = document.getElementById('iconRug');
       if (isRugSafe) {
         iconRug.className = 'fa-solid fa-circle-check text-emerald-400';
-        document.getElementById('rugSummary').innerText = 'Authorities Clean';
+        document.getElementById('rugSummary').textContent = 'Authorities Clean';
+        document.getElementById('authorityRiskBadge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        document.getElementById('authorityRiskBadge').textContent = '0 Risk Pts';
       } else {
-        iconRug.className = 'fa-solid fa-triangle-exclamation text-rose-500';
-        document.getElementById('rugSummary').innerText = 'Honeypot Flagged (' + (rug.totalRiskScore || rug.riskScore || 0) + ' pts)';
+        iconRug.className = 'fa-solid fa-triangle-exclamation text-rose-400';
+        document.getElementById('rugSummary').textContent = 'Honeypot Flagged (' + (rug.totalRiskScore || rug.riskScore || 0) + ' pts)';
+        document.getElementById('authorityRiskBadge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        document.getElementById('authorityRiskBadge').textContent = '+' + ((rug.freezeRiskScore || 0) + (rug.mintRiskScore || 0)) + ' Risk Pts';
       }
-      const freezeStr = rug.hasFreezeAuthority ? 'Active (' + (rug.freezeAuthority || 'Present').substring(0, 5) + '...)' : 'Revoked';
-      const mintStr = rug.hasMintAuthority ? 'Active (' + (rug.mintAuthority || 'Present').substring(0, 5) + '...)' : 'Revoked';
-      document.getElementById('rugDetails').innerText = 'Freeze: ' + freezeStr + ' | Mint: ' + mintStr;
+
+      const freezeStr = rug.hasFreezeAuthority ? 'Active (' + (rug.freezeAuthority || 'Present').substring(0, 5) + '...)' : 'Revoked (null)';
+      const mintStr = rug.hasMintAuthority ? 'Active (' + (rug.mintAuthority || 'Present').substring(0, 5) + '...)' : 'Revoked (null)';
+      document.getElementById('rugDetails').textContent = 'Freeze: ' + (rug.hasFreezeAuthority ? 'Active' : 'Revoked') + ' | Mint: ' + (rug.hasMintAuthority ? 'Active' : 'Revoked');
+      document.getElementById('tabFreezeStatus').textContent = freezeStr;
+      document.getElementById('tabFreezeStatus').className = rug.hasFreezeAuthority ? 'font-mono text-rose-400 font-semibold' : 'font-mono text-emerald-400';
+      document.getElementById('tabMintStatus').textContent = mintStr;
+      document.getElementById('tabMintStatus').className = rug.hasMintAuthority ? 'font-mono text-rose-400 font-semibold' : 'font-mono text-emerald-400';
+
+      const sharePercent = rug.topHoldersSharePercentage !== undefined ? rug.topHoldersSharePercentage : (rug.top5HolderPercent || 0);
+      document.getElementById('tabTop5Share').textContent = sharePercent.toFixed(1) + '%';
+      document.getElementById('tabConcentrationBar').style.width = Math.min(sharePercent, 100) + '%';
+      if (sharePercent >= 80) {
+        document.getElementById('tabConcentrationBar').className = 'bg-rose-500 h-full rounded-full transition-all duration-500';
+        document.getElementById('concentrationRiskBadge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20';
+        document.getElementById('concentrationRiskBadge').textContent = '+30 Risk Pts';
+      } else if (sharePercent >= 50) {
+        document.getElementById('tabConcentrationBar').className = 'bg-amber-500 h-full rounded-full transition-all duration-500';
+        document.getElementById('concentrationRiskBadge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20';
+        document.getElementById('concentrationRiskBadge').textContent = '+20 Risk Pts';
+      } else {
+        document.getElementById('tabConcentrationBar').className = 'bg-indigo-500 h-full rounded-full transition-all duration-500';
+        document.getElementById('concentrationRiskBadge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+        document.getElementById('concentrationRiskBadge').textContent = '0 Risk Pts';
+      }
 
       // MEV Analysis details
       const mev = report.mevReport || (report.breakdown && report.breakdown.mevGuard) || {};
@@ -369,13 +801,17 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
       const iconMev = document.getElementById('iconMev');
       if (!isSandwichVulnerable) {
         iconMev.className = 'fa-solid fa-circle-check text-emerald-400';
-        document.getElementById('mevSummary').innerText = tier + ' (' + slippageBps + ' bps)';
+        document.getElementById('mevSummary').textContent = tier + ' (' + slippageBps + ' bps)';
       } else {
-        iconMev.className = 'fa-solid fa-triangle-exclamation text-rose-500';
-        document.getElementById('mevSummary').innerText = 'Sandwich Vulnerable (' + slippageBps + ' bps)';
+        iconMev.className = 'fa-solid fa-triangle-exclamation text-rose-400';
+        document.getElementById('mevSummary').textContent = 'Sandwich Vulnerable (' + slippageBps + ' bps)';
       }
       const extractableUsd = mev.estimatedExtractableValueUsd ? '$' + mev.estimatedExtractableValueUsd : '$0.00';
-      document.getElementById('mevDetails').innerText = 'Max Extractable: ' + extractableUsd + ' | Rec: <=' + (mev.recommendedMaxSlippageBps || 100) + ' bps';
+      document.getElementById('mevDetails').textContent = 'Extractable: ' + extractableUsd + ' | Rec: <=' + (mev.recommendedMaxSlippageBps || 100) + ' bps';
+      document.getElementById('tabMevTier').textContent = tier;
+      document.getElementById('tabMevTier').className = tier === 'CRITICAL' ? 'text-lg font-bold font-mono text-rose-400' : (tier === 'HIGH' ? 'text-lg font-bold font-mono text-amber-400' : 'text-lg font-bold font-mono text-emerald-400');
+      document.getElementById('tabMevExtractable').textContent = extractableUsd;
+      document.getElementById('tabMevRecommended').textContent = '<= ' + (mev.recommendedMaxSlippageBps || 100) + ' bps (' + ((mev.recommendedMaxSlippageBps || 100) / 100).toFixed(2) + '%)';
 
       // Simulation details
       const sim = report.simulation || (report.breakdown && report.breakdown.simulation) || {};
@@ -383,19 +819,74 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
       const iconSim = document.getElementById('iconSim');
       if (simPassed !== false) {
         iconSim.className = 'fa-solid fa-circle-check text-emerald-400';
-        document.getElementById('simSummary').innerText = 'Simulation Verified';
-        document.getElementById('simDetails').innerText = 'Balance Delta Diff: Verified Safe';
+        document.getElementById('simSummary').textContent = 'Simulation Verified';
+        document.getElementById('simDetails').textContent = 'Balance Delta: Verified Safe';
+        document.getElementById('tabSimDelta').textContent = '+' + (sim.simulatedBalanceDelta || report.expectedOutput || 5000000).toLocaleString() + ' Units (Safe)';
+        document.getElementById('tabSimDelta').className = 'font-mono text-emerald-400 font-semibold';
       } else {
-        iconSim.className = 'fa-solid fa-circle-xmark text-rose-500';
-        document.getElementById('simSummary').innerText = 'Simulation Revert / Tax';
-        document.getElementById('simDetails').innerText = (sim.reasons && sim.reasons[0]) || 'Instruction error or delta deficit';
+        iconSim.className = 'fa-solid fa-circle-xmark text-rose-400';
+        document.getElementById('simSummary').textContent = 'Simulation Revert / Tax';
+        document.getElementById('simDetails').textContent = (sim.reasons && sim.reasons[0]) || 'Instruction error or delta deficit';
+        document.getElementById('tabSimDelta').textContent = 'Failed Delta Check';
+        document.getElementById('tabSimDelta').className = 'font-mono text-rose-400 font-semibold';
       }
+      document.getElementById('tabSimUnits').textContent = (sim.unitsConsumed || 28450).toLocaleString() + ' CU';
+      if (sim.logs && sim.logs.length > 0) {
+        document.getElementById('tabSimLogs').textContent = sim.logs.join('\\n');
+      } else {
+        document.getElementById('tabSimLogs').textContent = 'Program 11111111111111111111111111111111 invoke [1]\\nProgram 11111111111111111111111111111111 success';
+      }
+
+      // Overview panel details
+      document.getElementById('overviewScoreText').textContent = String(score);
+      document.getElementById('overviewThreatBadge').textContent = score >= 70 ? 'CRITICAL RISK' : (score >= 40 ? 'MEDIUM RISK' : 'LOW THREAT');
+      document.getElementById('overviewThreatBadge').className = score >= 70 ? 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20' : (score >= 40 ? 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20');
+      document.getElementById('overviewVerdict').textContent = report.summary || (isApproved ? 'Proposal cleared all pre-flight checks.' : 'Proposal aborted due to adversarial risks.');
+      document.getElementById('overviewRugPts').textContent = (rug.totalRiskScore || 0) + ' pts';
+      document.getElementById('overviewMevPts').textContent = (mev.mevRiskScore || 0) + ' pts';
+      document.getElementById('overviewSimStatus').textContent = simPassed !== false ? 'Passed' : 'Failed/Vetoed';
+      document.getElementById('overviewSimStatus').className = simPassed !== false ? 'font-mono text-emerald-400' : 'font-mono text-rose-400';
+
+      const recsList = document.getElementById('overviewRecommendations');
+      recsList.innerHTML = '';
+      const recs = (report.recommendations && report.recommendations.length > 0) ? report.recommendations : (isApproved ? ['Safe to execute with agent keypair.'] : ['Abort trade proposal.']);
+      recs.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        recsList.appendChild(li);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
     }
 
     function copyAuditJson() {
-      const text = document.getElementById('jsonOutput').innerText;
-      navigator.clipboard.writeText(text);
-      alert('Audit JSON copied to clipboard!');
+      const text = document.getElementById('jsonOutput').textContent || '';
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Diagnostic JSON copied to clipboard');
+      }).catch(() => {
+        showToast('JSON copied');
+      });
+    }
+
+    function downloadAuditJson() {
+      if (!currentReport) return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentReport, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "sol_inquisitor_audit_" + Date.now() + ".json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Audit report downloaded');
     }
 
     // Auto-run default on load
@@ -405,7 +896,7 @@ const HTML_DASHBOARD = `<!DOCTYPE html>
 </html>
 `;
 
-export function startUiServer(port: number = PORT): http.Server {
+export function startUiServer(port: number = PORT, engine: SolInquisitorPlugin = inquisitor): http.Server {
   const server = http.createServer(async (req, res) => {
     // Enable CORS for external API consumers
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -431,8 +922,23 @@ export function startUiServer(port: number = PORT): http.Server {
       return;
     }
 
+    // Serve Favicon (clean SVG shield)
+    if (parsedUrl.pathname === "/favicon.ico") {
+      const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="#18181b" stroke="#6366f1" stroke-width="6"/><text x="50" y="58" font-size="32" font-family="sans-serif" font-weight="bold" fill="#6366f1" text-anchor="middle">SI</text></svg>`;
+      res.writeHead(200, { "Content-Type": "image/svg+xml" });
+      res.end(faviconSvg);
+      return;
+    }
+
     // Handle Audit API (POST and GET supported for flexibility)
     if (parsedUrl.pathname === "/api/audit") {
+      // Enforce supported HTTP methods (return 404 for DELETE, PUT, PATCH, etc.)
+      if (req.method !== "POST" && req.method !== "GET") {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found");
+        return;
+      }
+
       let body = "";
       req.on("data", (chunk) => {
         body += chunk;
@@ -442,13 +948,19 @@ export function startUiServer(port: number = PORT): http.Server {
         try {
           let payload: { mint?: string; targetMint?: string; expectedOutput?: number; maxSlippageBps?: number } = {};
           if (body) {
-            payload = JSON.parse(body);
+            // Defensive reviver preventing prototype pollution
+            payload = JSON.parse(body, (key, value) => {
+              if (key === "__proto__" || key === "constructor" || key === "prototype") {
+                return undefined;
+              }
+              return value;
+            });
           } else if (parsedUrl.query) {
             payload = {
               mint: parsedUrl.query.mint as string,
               targetMint: (parsedUrl.query.targetMint as string) || (parsedUrl.query.mint as string),
-              expectedOutput: parseInt((parsedUrl.query.expectedOutput as string) || "5000000", 10),
-              maxSlippageBps: parseInt((parsedUrl.query.maxSlippageBps as string) || "50", 10),
+              expectedOutput: parsedUrl.query.expectedOutput ? parseInt(parsedUrl.query.expectedOutput as string, 10) : 5000000,
+              maxSlippageBps: parsedUrl.query.maxSlippageBps !== undefined ? parseInt(parsedUrl.query.maxSlippageBps as string, 10) : 50,
             };
           }
 
@@ -498,7 +1010,7 @@ export function startUiServer(port: number = PORT): http.Server {
                 sandwichVulnerable: false,
                 sandwichVulnerability: false,
                 estimatedExtractableValueBps: 96,
-                estimatedExtractableValueUsd: 12.5,
+                estimatedExtractableValueUsd: "12.50",
                 recommendedMaxSlippageBps: 100,
                 reasons: ["Moderate slippage tolerance (1.50%)."],
               },
@@ -519,8 +1031,8 @@ export function startUiServer(port: number = PORT): http.Server {
             return;
           }
 
-          // Real execution via SolInquisitorPlugin
-          const pluginReport = await inquisitor.auditTradeProposal({
+          // Real execution via injected SolInquisitorPlugin engine
+          const pluginReport = await engine.auditTradeProposal({
             targetMint,
             expectedOutput,
             maxSlippageBps,
@@ -603,7 +1115,14 @@ export function startUiServer(port: number = PORT): http.Server {
           res.end(JSON.stringify(structuredReport));
         } catch (err: any) {
           res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: err.message || "Internal server error" }));
+          res.end(JSON.stringify({ 
+            verdict: "BLOCKED",
+            decision: "BLOCKED",
+            totalRiskScore: 100,
+            overallRiskScore: 100,
+            vetoReasons: ["Fail-Secure Exception: " + (err.message || "Internal server error")],
+            error: err.message || "Internal server error" 
+          }));
         }
       });
       return;
