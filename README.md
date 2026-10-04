@@ -2,6 +2,7 @@
 
 > **Adversarial Pre-Flight Falsification & Simulation Engine for Solana Agent Kit & Native Model Context Protocol (MCP)**
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-sol--inquisitor.vercel.app-6366f1?style=flat&logo=vercel)](https://sol-inquisitor.vercel.app)
 [![npm version](https://img.shields.io/badge/npm-v1.0.0-blue.svg)](https://www.npmjs.com/package/@solana-agent-kit/plugin-adversary)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tests: 191/191 Passing](https://img.shields.io/badge/Tests-191%2F191%20Passing-brightgreen.svg)](tests/)

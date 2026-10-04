@@ -4,6 +4,9 @@
   "description": "Sol-Inquisitor: Adversarial Pre-Flight Falsification & Simulation Engine for Solana Agent Kit with native MCP server support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "engines": {
+    "node": "22.x"
+  },
   "bin": {
     "sol-inquisitor-mcp": "./dist/mcp/server.js",
     "sol-inquisitor-demo": "./dist/cli/demo.js"

@@ -5,3 +5,4 @@ coverage/
 .DS_Store
 .agents/
 ORIGINAL_REQUEST.md
+.vercel
